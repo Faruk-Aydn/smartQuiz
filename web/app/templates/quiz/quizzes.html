@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Quizler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="text-center mb-4">Quizler</h1>
+        <ul class="list-group">
+            {% for quiz in quizzes %}
+            <li class="list-group-item">
+                <h5>{{ quiz.title }}</h5>
+                <p>{{ quiz.description }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

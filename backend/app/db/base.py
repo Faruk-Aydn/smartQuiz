@@ -1,0 +1,10 @@
+# SQLAlchemy modelleri için içe aktarmalar
+from app.db.base_class import Base  # noqa
+from app.db.models.user import User  # noqa
+from app.db.models.quiz import Quiz  # noqa
+from app.db.models.question import Question  # noqa
+from app.db.models.answer import Answer  # noqa
+from app.db.models.option import Option  # noqa
+from app.db.models.student_response import StudentResponse  # noqa
+from app.db.models.student_answer import StudentAnswer  # noqa
+from app.db.models.score import Score  # noqa

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="text-center mb-4">Quiz Uygulamasına Hoş Geldiniz!</h1>
+        <div class="text-center">
+            <p class="lead">
+                Öğrenmeyi eğlenceli hale getiren quiz uygulamasına hoş geldiniz.
+                Hemen başlamak için giriş yapın veya kayıt olun.
+            </p>
+            <div class="mt-4">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg mx-2">Giriş Yap</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg mx-2">Kayıt Ol</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block title %}Ana Sayfa{% endblock %}
