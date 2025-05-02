@@ -22,7 +22,7 @@ class StudentResponseResponse(StudentResponseBase):
     total_score: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class StudentResponseWithAnswers(StudentResponseResponse):
     answers: List[StudentAnswerResponse] = []

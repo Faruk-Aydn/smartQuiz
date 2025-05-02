@@ -20,4 +20,4 @@ class StudentAnswerResponse(StudentAnswerBase):
     points_earned: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

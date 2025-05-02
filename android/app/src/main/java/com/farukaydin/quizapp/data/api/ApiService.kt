@@ -6,12 +6,8 @@ import retrofit2.http.*
 
 interface ApiService {
     // Auth endpoints
-    @FormUrlEncoded
     @POST("auth/login")
-    suspend fun login(
-        @Field("username") username: String,
-        @Field("password") password: String
-    ): Response<LoginResponse>
+    suspend fun login(@Body loginRequest: UserLogin): Response<LoginResponse>
 
     @POST("auth/register")
     suspend fun register(@Body userCreate: UserCreate): Response<User>

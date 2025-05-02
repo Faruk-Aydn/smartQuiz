@@ -17,7 +17,7 @@ fun LoginScreen(
     onRegisterClick: () -> Unit,
     viewModel: LoginViewModel
 ) {
-    var username by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -28,9 +28,9 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         TextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Kullanıcı Adı") },
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("E-posta") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -43,7 +43,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                viewModel.login(username, password, onStudent = onStudent, onTeacher = onTeacher) {
+                viewModel.login(email, password, onStudent = onStudent, onTeacher = onTeacher) {
                     error = it
                 }
             },

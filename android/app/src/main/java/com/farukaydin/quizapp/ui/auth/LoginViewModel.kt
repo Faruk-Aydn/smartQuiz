@@ -12,7 +12,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPrefs = application.getSharedPreferences("quiz_app_prefs", Application.MODE_PRIVATE)
 
     fun login(
-        username: String,
+        email: String,
         password: String,
         onStudent: () -> Unit,
         onTeacher: () -> Unit,
@@ -20,7 +20,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             try {
-                val response = authRepository.login(username, password)
+                val response = authRepository.login(email, password)
                 if (response.isSuccessful && response.body() != null) {
                     val token = response.body()?.access_token
                     if (token != null) {

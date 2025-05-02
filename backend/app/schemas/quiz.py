@@ -24,11 +24,11 @@ class QuizResponse(QuizBase):
     qr_code: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class QuizWithQuestions(BaseModel):
     quiz: QuizResponse
     questions: List[QuestionResponse]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

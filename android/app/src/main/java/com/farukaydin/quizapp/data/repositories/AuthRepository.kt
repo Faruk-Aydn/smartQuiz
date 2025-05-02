@@ -8,8 +8,8 @@ import com.farukaydin.quizapp.data.models.UserLogin
 import retrofit2.Response
 
 class AuthRepository(private val apiService: ApiService) {
-    suspend fun login(username: String, password: String): Response<LoginResponse> {
-        return apiService.login(username, password)
+    suspend fun login(email: String, password: String): Response<LoginResponse> {
+        return apiService.login(UserLogin(email, password))
     }
 
     suspend fun register(email: String, username: String, password: String, role: String): Response<User> {

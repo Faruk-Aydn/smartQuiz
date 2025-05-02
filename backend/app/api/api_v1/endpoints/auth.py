@@ -1,9 +1,9 @@
 from datetime import timedelta
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
+from pydantic import BaseModel, EmailStr
 
 from app.api import deps
 from app.core import security
@@ -14,14 +14,19 @@ from app.services.user_service import authenticate_user
 
 router = APIRouter()
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
 @router.post("/login", response_model=Token)
 def login_access_token(
-    db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
+    db: Session = Depends(deps.get_db),
+    login_req: LoginRequest = Body(...)
 ) -> Any:
     """
-    OAuth2 uyumlu token oluşturur
+    Email ve şifre ile token oluşturur
     """
-    user = authenticate_user(db, form_data.username, form_data.password)
+    user = authenticate_user(db, login_req.email, login_req.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
