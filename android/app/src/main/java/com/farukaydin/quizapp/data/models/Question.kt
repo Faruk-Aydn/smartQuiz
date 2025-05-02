@@ -3,7 +3,7 @@ package com.farukaydin.quizapp.data.models
 data class Question(
     val id: Int,
     val text: String,
-    val options: List<String>,
+    val options: List<OptionResponse>,
     val correctOption: Int,
     val quizId: Int
 )

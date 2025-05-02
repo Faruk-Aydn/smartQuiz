@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import qrcode
 import io
@@ -30,7 +30,7 @@ def create_quiz(db: Session, obj_in: QuizCreate, teacher_id: int) -> Quiz:
     return db_obj
 
 def get_quiz(db: Session, quiz_id: int) -> Optional[Quiz]:
-    return db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    return db.query(Quiz).options(joinedload(Quiz.questions)).filter(Quiz.id == quiz_id).first()
 
 def get_quizzes_by_teacher(db: Session, teacher_id: int) -> List[Quiz]:
     return db.query(Quiz).filter(Quiz.teacher_id == teacher_id).all()
@@ -71,3 +71,9 @@ def generate_qr_code(quiz_id: int) -> str:
     img_str = base64.b64encode(buffered.getvalue()).decode()
     
     return f"data:image/png;base64,{img_str}"
+
+def get_quizzes(db: Session, teacher_id: Optional[int] = None, skip: int = 0, limit: int = 100):
+    query = db.query(Quiz)
+    if teacher_id is not None:
+        query = query.filter(Quiz.teacher_id == teacher_id)
+    return query.offset(skip).limit(limit).all()

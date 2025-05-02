@@ -36,7 +36,6 @@ def generate_ai_questions(db: Session, quiz_id: int, topic: str, difficulty: str
             text=q_data["question"],
             question_type=QuestionType.MULTIPLE_CHOICE,
             points=10,  # Varsayılan puan
-            explanation=q_data.get("explanation", "")
         )
         db.add(question)
         db.flush()  # ID almak için flush

@@ -1,12 +1,18 @@
 from typing import Any, List
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Body
+from sqlalchemy.orm import Session, joinedload
 
 from app.api import deps
 from app.db.models.user import User, UserRole
-from app.schemas.quiz import QuizResponse, QuizCreate, QuizUpdate
-from app.crud.quiz import create_quiz, get_quiz, update_quiz, generate_qr_code
+from app.schemas.quiz import QuizResponse, QuizCreate, QuizUpdate, QuizWithQuestions
+from app.schemas.question import QuestionCreate, QuestionResponse
+from app.db.models.quiz import Quiz
+from app.db.models.question import Question
+from app.crud.quiz import create_quiz, get_quiz, update_quiz, generate_qr_code, get_quizzes
+from app.services.ai_service import get_ai_service
+from pydantic import BaseModel
+from app.services.quiz_service import generate_ai_questions
 
 router = APIRouter()
 
@@ -25,7 +31,7 @@ def create_quiz_endpoint(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Yeterli izniniz yok",
         )
-    quiz = create_quiz(db=db, quiz_in=quiz_in, teacher_id=current_user.id)
+    quiz = create_quiz(db=db, obj_in=quiz_in, teacher_id=current_user.id)
     return quiz
 
 @router.get("/", response_model=List[QuizResponse])
@@ -141,3 +147,102 @@ def generate_qr_code_endpoint(
         )
     quiz = generate_qr_code(db=db, quiz=quiz)
     return quiz
+
+class AIGenerateQuizRequest(BaseModel):
+    topic: str
+    difficulty: str = "medium"
+    num_questions: int = 5
+
+@router.post("/ai-generate", response_model=List[dict])
+def ai_generate_quiz(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    req: AIGenerateQuizRequest = Body(...)
+):
+    """
+    Yapay zeka ile quiz soruları oluştur (sadece öğretmen)
+    """
+    if current_user.role != UserRole.TEACHER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Yeterli izniniz yok")
+    ai_service = get_ai_service()
+    questions = ai_service.generate_quiz_questions(req.topic, req.difficulty, req.num_questions)
+    return questions
+
+class AIGenerateAndSaveQuizRequest(BaseModel):
+    topic: str
+    difficulty: str = "medium"
+    num_questions: int = 5
+    title: str
+    description: str = ""
+
+@router.post("/ai-generate-and-save", response_model=QuizResponse)
+def ai_generate_and_save_quiz(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    req: AIGenerateAndSaveQuizRequest = Body(...)
+):
+    """
+    AI ile oluşturulan soruları quiz olarak kaydeder (sadece öğretmen)
+    """
+    if current_user.role != UserRole.TEACHER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Yeterli izniniz yok")
+    # 1. Quiz oluştur
+    quiz_in = QuizCreate(
+        title=req.title,
+        description=req.description,
+        subject=req.topic,
+        grade_level=""  # None yerine boş string
+    )
+    quiz = create_quiz(db=db, obj_in=quiz_in, teacher_id=current_user.id)
+    # 2. AI ile soruları oluşturup kaydet
+    generate_ai_questions(db=db, quiz_id=quiz.id, topic=req.topic, difficulty=req.difficulty, num_questions=req.num_questions)
+    db.refresh(quiz)
+    return quiz
+
+@router.get("/{quiz_id}/with-questions", response_model=QuizWithQuestions)
+def read_quiz_with_questions(
+    *,
+    db: Session = Depends(deps.get_db),
+    quiz_id: int,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Quiz detaylarını ve sorularını getir
+    """
+    quiz = db.query(Quiz).options(joinedload(Quiz.questions)).filter(Quiz.id == quiz_id).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz bulunamadı")
+    if current_user.role == UserRole.TEACHER and quiz.teacher_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Yeterli izniniz yok")
+    quiz_response = QuizResponse.from_orm(quiz)
+    questions = [QuestionResponse.from_orm(q) for q in quiz.questions]
+    return {"quiz": quiz_response, "questions": questions}
+
+@router.post("/{quiz_id}/questions", response_model=QuestionResponse)
+def add_question_to_quiz(
+    *,
+    db: Session = Depends(deps.get_db),
+    quiz_id: int,
+    question_in: QuestionCreate,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Quiz'e yeni soru ekle
+    """
+    quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz bulunamadı")
+    if current_user.role != UserRole.TEACHER or quiz.teacher_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Yeterli izniniz yok")
+    question = Question(
+        text=question_in.text,
+        question_type=question_in.question_type,
+        points=question_in.points,
+        quiz_id=quiz_id
+    )
+    db.add(question)
+    db.commit()
+    db.refresh(question)
+    return QuestionResponse.from_orm(question)

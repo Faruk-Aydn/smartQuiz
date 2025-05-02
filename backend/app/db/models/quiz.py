@@ -17,5 +17,5 @@ class Quiz(Base):
     # İlişkiler
     teacher_id = Column(Integer, ForeignKey("user.id"))
     teacher = relationship("User", back_populates="quizzes")
-    questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan", lazy="joined")
     student_responses = relationship("StudentResponse", back_populates="quiz")

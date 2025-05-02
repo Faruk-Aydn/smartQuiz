@@ -24,6 +24,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.ui.unit.dp
+import com.farukaydin.quizapp.ui.quiz.CreateQuizScreen
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import com.farukaydin.quizapp.ui.quiz.QuizDetailScreen
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,17 +67,34 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
-                    QuizListScreen(
-                        onQuizClick = { quizId -> navController.navigate("quizDetail/$quizId") },
-                        viewModel = quizListViewModel
-                    )
+                    QuizListScreen(viewModel = quizListViewModel)
                 }
                 composable("quizDetail/{quizId}") { backStackEntry ->
-                    val quizId = backStackEntry.arguments?.getString("quizId")
-                    QuizDetailScreen(quizId = quizId)
+                    val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull()
+                    val quizListViewModel: QuizListViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return QuizListViewModel(application) as T
+                            }
+                        }
+                    )
+                    QuizDetailScreenWithViewModel(quizId = quizId, viewModel = quizListViewModel)
                 }
                 composable("teacherHome") {
-                    TeacherHomeScreen()
+                    TeacherHomeScreen(
+                        onCreateQuiz = { navController.navigate("createQuiz") },
+                        onQuizList = { navController.navigate("quizList") },
+                        onResults = { navController.navigate("results") }
+                    )
+                }
+                composable("createQuiz") {
+                    CreateQuizScreen(
+                        onBack = { navController.popBackStack() },
+                        onQuizCreated = { navController.popBackStack() }
+                    )
+                }
+                composable("results") {
+                    HomeScreen()
                 }
             }
         }
@@ -86,25 +113,62 @@ fun HomeScreenPreview() {
 }
 
 @Composable
-fun QuizDetailScreen(quizId: String?) {
-    Text("Quiz Detay Ekranı - Quiz ID: $quizId")
-}
-
-@Composable
-fun TeacherHomeScreen() {
+fun TeacherHomeScreen(
+    onCreateQuiz: () -> Unit,
+    onQuizList: () -> Unit,
+    onResults: () -> Unit
+) {
     Column(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(16.dp)) {
         Text("Hoşgeldiniz, Öğretmen!", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
         Spacer(modifier = androidx.compose.ui.Modifier.height(24.dp))
-        Button(onClick = { /* Quiz oluşturma ekranına git */ }) {
+        Button(onClick = onCreateQuiz) {
             Text("Quiz Oluştur")
         }
         Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-        Button(onClick = { /* Quizlerim ekranına git */ }) {
+        Button(onClick = onQuizList) {
             Text("Quizlerim")
         }
         Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-        Button(onClick = { /* Sonuçlar ekranına git */ }) {
+        Button(onClick = onResults) {
             Text("Sonuçlar")
+        }
+    }
+}
+
+@Composable
+fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel) {
+    if (quizId == null) {
+        Text("Quiz ID geçersiz")
+        return
+    }
+    
+    val coroutineScope = rememberCoroutineScope()
+    
+    LaunchedEffect(quizId) {
+        viewModel.fetchQuizDetail(quizId)
+    }
+    
+    val quizDetailState = viewModel.quizDetailState.collectAsState().value
+    when {
+        quizDetailState.isLoading -> {
+            CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+        }
+        quizDetailState.error != null -> {
+            Text(text = quizDetailState.error, color = MaterialTheme.colorScheme.error)
+        }
+        quizDetailState.quiz != null -> {
+            QuizDetailScreen(
+                quiz = quizDetailState.quiz,
+                questions = quizDetailState.questions,
+                onAddQuestion = { text, options, correctOption ->
+                    coroutineScope.launch {
+                        viewModel.addQuestionToQuiz(quizDetailState.quiz.id, text, options, correctOption)
+                    }
+                }
+            )
+        }
+        else -> {
+            Text("Yükleniyor...")
         }
     }
 }

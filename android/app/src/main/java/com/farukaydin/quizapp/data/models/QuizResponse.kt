@@ -4,5 +4,5 @@ data class QuizResponse(
     val id: Int,
     val title: String,
     val description: String,
-    val questions: List<Question>
+    val questions: List<Question> = emptyList()
 ) 

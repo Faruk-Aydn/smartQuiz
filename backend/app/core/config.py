@@ -54,9 +54,9 @@ class Settings(BaseSettings):
 
     # AI model ayarları
     AI_PROVIDER: str = "gemini"  # "openai" veya "gemini"
-    AI_MODEL_NAME: str = "gemini-pro"  # Gemini modeli
+    AI_MODEL_NAME: str = "gemini-2.0-flash-001"  # En güncel ve stabil Gemini modeli
     AI_API_KEY: str = "AIzaSyD-9_jzyyChovlKr6nI9lFVH0vyYwTtVj0"  # Gemini API anahtarınız
-    GEMINI_API_URL: str = "https://generativelanguage.googleapis.com/v1beta/models"
+    GEMINI_API_URL: str = "https://generativelanguage.googleapis.com/v1/models"  # Güncel Gemini API endpointi
     
     # Frontend ayarları
     FRONTEND_BASE_URL: str = "http://localhost:3000"  # Frontend URL'si

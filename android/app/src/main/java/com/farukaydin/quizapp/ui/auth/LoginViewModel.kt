@@ -32,6 +32,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                         val userResponse = authRepository.getCurrentUser("Bearer $token")
                         if (userResponse.isSuccessful && userResponse.body() != null) {
                             val user = userResponse.body()!!
+                            sharedPrefs.edit()
+                                .putString("user_role", user.role)
+                                .apply()
                             if (user.role == "student") {
                                 onStudent()
                             } else if (user.role == "teacher") {

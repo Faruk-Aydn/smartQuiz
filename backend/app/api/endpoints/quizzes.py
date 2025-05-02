@@ -104,4 +104,4 @@ def get_quiz_details(
             detail="Bu quize erişim izniniz yok"
         )
     
-    return {"quiz": quiz, "questions": quiz.questions}
+    return quiz
