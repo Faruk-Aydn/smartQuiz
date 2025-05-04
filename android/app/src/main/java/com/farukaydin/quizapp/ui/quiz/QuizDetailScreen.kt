@@ -16,12 +16,19 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.remember
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 
 @Composable
 fun QuizDetailScreen(
     quiz: QuizResponse,
     questions: List<Question>,
-    onAddQuestion: ((String, List<String>, Int) -> Unit)? = null
+    onAddQuestion: ((String, List<String>, Int) -> Unit)? = null,
+    onDeleteQuestion: ((Int) -> Unit)? = null
 ) {
     LazyColumn(
         modifier = Modifier
@@ -71,9 +78,18 @@ fun QuizDetailScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Text(text = question.text, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = question.text, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                        if (onDeleteQuestion != null) {
+                            IconButton(onClick = { onDeleteQuestion(question.id) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Soru Sil")
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
-                    
                     question.options.forEachIndexed { index, option ->
                         Text(
                             text = "${index + 1}. ${option.text}",
@@ -116,14 +132,24 @@ fun QuizDetailScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         options.forEachIndexed { index, option ->
-                            OutlinedTextField(
-                                value = option,
-                                onValueChange = { newValue ->
-                                    options = options.toMutableList().also { it[index] = newValue }
-                                },
-                                label = { Text("Seçenek ${index + 1}") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = correctOptionIndex == index,
+                                    onClick = { correctOptionIndex = index },
+                                    colors = RadioButtonDefaults.colors()
+                                )
+                                OutlinedTextField(
+                                    value = option,
+                                    onValueChange = { newValue ->
+                                        options = options.toMutableList().also { it[index] = newValue }
+                                    },
+                                    label = { Text("Seçenek ${index + 1}") },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                         

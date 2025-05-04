@@ -9,6 +9,7 @@ from app.schemas.quiz import QuizResponse, QuizCreate, QuizUpdate, QuizWithQuest
 from app.schemas.question import QuestionCreate, QuestionResponse
 from app.db.models.quiz import Quiz
 from app.db.models.question import Question
+from app.db.models.option import Option
 from app.crud.quiz import create_quiz, get_quiz, update_quiz, generate_qr_code, get_quizzes
 from app.services.ai_service import get_ai_service
 from pydantic import BaseModel
@@ -245,6 +246,16 @@ def add_question_to_quiz(
         quiz_id=quiz_id
     )
     db.add(question)
+    db.commit()
+    db.refresh(question)
+    # Gelen optionsları ekle
+    for opt in question_in.options:
+        option = Option(
+            text=opt.text,
+            is_correct=opt.is_correct,
+            question_id=question.id
+        )
+        db.add(option)
     db.commit()
     db.refresh(question)
     return QuestionResponse.from_orm(question)

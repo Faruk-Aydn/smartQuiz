@@ -7,6 +7,7 @@ import com.farukaydin.quizapp.data.models.QuizCreate
 import com.farukaydin.quizapp.data.models.QuizResponse
 import com.farukaydin.quizapp.data.models.QuestionCreate
 import com.farukaydin.quizapp.data.models.QuizWithQuestions
+import com.farukaydin.quizapp.data.models.Question
 import retrofit2.Response
 
 class QuizRepository(private val apiService: ApiService) {
@@ -18,8 +19,8 @@ class QuizRepository(private val apiService: ApiService) {
         return apiService.getQuiz(id)
     }
 
-    suspend fun createQuiz(title: String, description: String): Response<Quiz> {
-        return apiService.createQuiz(QuizCreate(title, description))
+    suspend fun createQuiz(title: String, description: String, subject: String, gradeLevel: String, token: String): Response<Quiz> {
+        return apiService.createQuiz(QuizCreate(title, description, subject, gradeLevel), "Bearer $token")
     }
 
     suspend fun aiGenerateQuiz(topic: String, difficulty: String, numQuestions: Int, token: String) =
@@ -49,4 +50,16 @@ class QuizRepository(private val apiService: ApiService) {
 
     suspend fun getQuizResults(quizId: Int, token: String) =
         apiService.getQuizResults(quizId, "Bearer $token")
+
+    suspend fun addQuestionToQuiz(quizId: Int, question: QuestionCreate, token: String): Response<Question> {
+        return apiService.addQuestionToQuiz(quizId, question, "Bearer $token")
+    }
+
+    suspend fun deleteQuiz(quizId: Int, token: String): Response<Quiz> {
+        return apiService.deleteQuiz(quizId, "Bearer $token")
+    }
+
+    suspend fun deleteQuestion(questionId: Int, token: String): Response<Unit> {
+        return apiService.deleteQuestion(questionId, "Bearer $token")
+    }
 } 

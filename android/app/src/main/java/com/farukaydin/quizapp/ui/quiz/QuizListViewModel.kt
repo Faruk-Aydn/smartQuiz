@@ -97,13 +97,20 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
 
     suspend fun addQuestionToQuiz(quizId: Int, text: String, options: List<String>, correctOption: Int): Boolean {
         if (token != null) {
+            val optionCreates = options.mapIndexed { idx, opt ->
+                OptionCreate(
+                    text = opt,
+                    is_correct = idx == correctOption
+                )
+            }
             val question = QuestionCreate(
                 text = text,
-                options = options,
-                correctOption = correctOption,
-                quizId = quizId
+                question_type = "multiple_choice",
+                points = 1,
+                options = optionCreates
             )
-            val result = quizRepository.addQuestion(question, token)
+            val response = quizRepository.addQuestionToQuiz(quizId, question, token)
+            val result = response.isSuccessful && response.body() != null
             if (result) {
                 fetchQuizDetail(quizId)
             }
@@ -127,6 +134,31 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
                 }
             } catch (e: Exception) {
                 _quizResultsState.value = QuizResultsState(error = "Hata: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun deleteQuiz(quizId: Int) {
+        viewModelScope.launch {
+            if (token != null) {
+                val response = quizRepository.deleteQuiz(quizId, token)
+                if (response.isSuccessful) {
+                    val role = sharedPrefs.getString("user_role", null)
+                    if (role != null) {
+                        fetchQuizzes(token, role)
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteQuestion(questionId: Int, quizId: Int) {
+        viewModelScope.launch {
+            if (token != null) {
+                val response = quizRepository.deleteQuestion(questionId, token)
+                if (response.isSuccessful) {
+                    fetchQuizDetail(quizId)
+                }
             }
         }
     }

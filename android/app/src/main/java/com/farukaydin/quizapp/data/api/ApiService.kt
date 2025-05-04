@@ -23,8 +23,8 @@ interface ApiService {
     @GET("quizzes/{id}")
     suspend fun getQuiz(@Path("id") id: Int): Response<QuizResponse>
 
-    @POST("quizzes/create")
-    suspend fun createQuiz(@Body quizCreate: QuizCreate): Response<Quiz>
+    @POST("quizzes")
+    suspend fun createQuiz(@Body quizCreate: QuizCreate, @Header("Authorization") token: String): Response<Quiz>
 
     @POST("quizzes/ai-generate")
     suspend fun aiGenerateQuiz(@Body request: AIGenerateQuizRequest, @Header("Authorization") token: String): Response<List<Map<String, Any>>>
@@ -51,6 +51,13 @@ interface ApiService {
     @POST("questions")
     suspend fun addQuestion(@Body question: QuestionCreate, @Header("Authorization") token: String): retrofit2.Response<Unit>
 
+    @POST("quizzes/{quiz_id}/questions")
+    suspend fun addQuestionToQuiz(
+        @Path("quiz_id") quizId: Int,
+        @Body question: QuestionCreate,
+        @Header("Authorization") token: String
+    ): Response<Question>
+
     // Response endpoints
     @POST("responses")
     suspend fun submitResponse(@Body response: ResponseCreate): Response<Unit>
@@ -67,6 +74,12 @@ interface ApiService {
         @Path("quiz_id") quizId: Int,
         @Header("Authorization") token: String
     ): Response<List<StudentQuizResult>>
+
+    @DELETE("quizzes/{quiz_id}")
+    suspend fun deleteQuiz(@Path("quiz_id") quizId: Int, @Header("Authorization") token: String): Response<Quiz>
+
+    @DELETE("questions/{question_id}")
+    suspend fun deleteQuestion(@Path("question_id") questionId: Int, @Header("Authorization") token: String): Response<Unit>
 }
 
 data class ResponseCreate(

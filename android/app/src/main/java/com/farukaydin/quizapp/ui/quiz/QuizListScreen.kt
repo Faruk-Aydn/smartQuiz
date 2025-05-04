@@ -18,6 +18,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.farukaydin.quizapp.data.models.QuizResponse
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 
 @Composable
 fun QuizListScreen(
@@ -44,25 +50,50 @@ fun QuizListScreen(
                         coroutineScope.launch {
                             viewModel.addQuestionToQuiz(quizDetailState.quiz.id, text, options, correctOption)
                         }
+                    },
+                    onDeleteQuestion = { questionId ->
+                        coroutineScope.launch {
+                            viewModel.deleteQuestion(questionId, quizDetailState.quiz.id)
+                        }
                     }
                 )
             }
             else -> {
                 LazyColumn {
                     items(uiState.quizzes) { quiz ->
-                        Column(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    selectedQuizId = quiz.id
-                                    coroutineScope.launch {
-                                        viewModel.fetchQuizDetail(quiz.id)
-                                    }
-                                }
-                                .padding(8.dp)
+                                .padding(8.dp),
+                            elevation = CardDefaults.cardElevation(4.dp)
                         ) {
-                            Text(text = quiz.title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-                            Text(text = quiz.description, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            selectedQuizId = quiz.id
+                                            coroutineScope.launch {
+                                                viewModel.fetchQuizDetail(quiz.id)
+                                            }
+                                        }
+                                ) {
+                                    Text(text = quiz.title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                                    Text(text = quiz.description, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+                                }
+                                IconButton(onClick = {
+                                    coroutineScope.launch {
+                                        viewModel.deleteQuiz(quiz.id)
+                                    }
+                                }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Quiz Sil")
+                                }
+                            }
                         }
                     }
                 }

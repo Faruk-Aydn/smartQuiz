@@ -167,6 +167,8 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
     val scope = rememberCoroutineScope()
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var subject by remember { mutableStateOf("") }
+    var gradeLevel by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var success by remember { mutableStateOf(false) }
@@ -190,6 +192,20 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
             label = { Text("Açıklama") },
             modifier = Modifier.fillMaxWidth()
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = subject,
+            onValueChange = { subject = it },
+            label = { Text("Konu") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = gradeLevel,
+            onValueChange = { gradeLevel = it },
+            label = { Text("Sınıf/Düzey") },
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
@@ -199,7 +215,7 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                 val repo = QuizRepository(RetrofitClient.apiService)
                 scope.launch {
                     try {
-                        val response = repo.createQuiz(title, description)
+                        val response = repo.createQuiz(title, description, subject, gradeLevel, token)
                         if (response.isSuccessful && response.body() != null) {
                             success = true
                             onQuizCreated()
@@ -213,7 +229,7 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                     }
                 }
             },
-            enabled = !isLoading && title.isNotBlank(),
+            enabled = !isLoading && title.isNotBlank() && subject.isNotBlank() && gradeLevel.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) {
             if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
