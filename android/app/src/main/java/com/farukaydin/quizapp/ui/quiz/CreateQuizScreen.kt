@@ -1,11 +1,16 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.farukaydin.quizapp.ui.quiz
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import android.app.Application
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.AndroidViewModel
@@ -16,6 +21,8 @@ import com.farukaydin.quizapp.data.api.RetrofitClient
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 
 class CreateQuizViewModel(application: Application) : AndroidViewModel(application) {
     private val quizRepository = QuizRepository(RetrofitClient.apiService)
@@ -54,23 +61,51 @@ fun CreateQuizScreen(
     var mode by remember { mutableStateOf<String?>(null) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 24.dp, vertical = 40.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            "Quiz Oluştur",
+            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Text(
+            "Yapay zeka veya manuel olarak yeni bir quiz oluşturabilirsiniz.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
         if (mode == null) {
-            Text("Quiz Oluştur", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = { mode = "ai" }, modifier = Modifier.fillMaxWidth()) {
-                Text("Yapay Zeka ile Quiz Oluştur")
+            Button(
+                onClick = { mode = "ai" },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Yapay Zeka ile Quiz Oluştur", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { mode = "manual" }, modifier = Modifier.fillMaxWidth()) {
-                Text("Manuel Quiz Oluştur")
+            Button(
+                onClick = { mode = "manual" },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Manuel Quiz Oluştur", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.height(32.dp))
-            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text("Geri Dön")
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Geri Dön", fontWeight = FontWeight.Medium, fontSize = 16.sp)
             }
         } else if (mode == "ai") {
             AICreateQuizForm(onBack = { mode = null }, onQuizCreated = onQuizCreated, viewModel = viewModel)
@@ -95,76 +130,112 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
     val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", 0)
     val token = sharedPrefs.getString("access_token", null) ?: ""
 
-    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-        Text("Yapay Zeka ile Quiz Oluştur", style = MaterialTheme.typography.titleLarge)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.large)
+            .padding(24.dp)
+    ) {
+        Text("Yapay Zeka ile Quiz Oluştur", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = topic,
+            onValueChange = { topic = it },
+            label = { Text("Konu") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = difficulty,
+            onValueChange = { difficulty = it },
+            label = { Text("Zorluk") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = numQuestions,
+            onValueChange = { numQuestions = it },
+            label = { Text("Soru Sayısı") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
             label = { Text("Quiz Başlığı") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
             label = { Text("Açıklama") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = topic,
-            onValueChange = { topic = it },
-            label = { Text("Konu") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = numQuestions,
-            onValueChange = { numQuestions = it.filter { c -> c.isDigit() } },
-            label = { Text("Soru Sayısı") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Zorluk:")
-            Spacer(modifier = Modifier.width(8.dp))
-            DropdownMenuBox(
-                options = listOf("easy", "medium", "hard"),
-                selected = difficulty,
-                onSelected = { difficulty = it }
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
-        }
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 viewModel.aiGenerateAndSaveQuiz(topic, difficulty, numQuestions.toIntOrNull() ?: 5, title, description, token)
             },
-            enabled = !isLoading && title.isNotBlank() && topic.isNotBlank(),
-            modifier = Modifier.fillMaxWidth()
+            enabled = !isLoading && topic.isNotBlank() && title.isNotBlank(),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = MaterialTheme.shapes.large,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
-            else Text("Quiz Oluştur ve Kaydet")
+            else Text("Quiz Oluştur", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
         }
         error?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
         if (aiQuizSuccess) {
             Text("Quiz başarıyla oluşturuldu!", color = MaterialTheme.colorScheme.primary)
-            LaunchedEffect(Unit) {
-                onQuizCreated()
-            }
+            onQuizCreated()
         }
         Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Geri Dön")
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth().height(56.dp), shape = MaterialTheme.shapes.large, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary)) {
+            Text("Geri Dön", fontWeight = FontWeight.Medium, fontSize = 16.sp)
         }
     }
 }
 
 @Composable
 fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
-    val scope = rememberCoroutineScope()
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }
@@ -172,39 +243,72 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var success by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", 0)
-    val token = sharedPrefs.getString("access_token", null) ?: ""
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Manuel Quiz Oluştur", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(16.dp))
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
             label = { Text("Quiz Başlığı") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
             label = { Text("Açıklama") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = subject,
             onValueChange = { subject = it },
             label = { Text("Konu") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = gradeLevel,
             onValueChange = { gradeLevel = it },
             label = { Text("Sınıf/Düzey") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
@@ -212,10 +316,10 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                 isLoading = true
                 error = null
                 success = false
-                val repo = QuizRepository(RetrofitClient.apiService)
                 scope.launch {
                     try {
-                        val response = repo.createQuiz(title, description, subject, gradeLevel, token)
+                        val repo = QuizRepository(RetrofitClient.apiService)
+                        val response = repo.createQuiz(title, description, subject, gradeLevel, "dummy-token")
                         if (response.isSuccessful && response.body() != null) {
                             success = true
                             onQuizCreated()
@@ -230,10 +334,15 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                 }
             },
             enabled = !isLoading && title.isNotBlank() && subject.isNotBlank() && gradeLevel.isNotBlank(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = MaterialTheme.shapes.large,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
-            else Text("Quiz Oluştur")
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+            } else {
+                Text("Quiz Oluştur", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            }
         }
         error?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error)
@@ -242,8 +351,8 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
             Text("Quiz başarıyla oluşturuldu!", color = MaterialTheme.colorScheme.primary)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Geri Dön")
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth().height(56.dp), shape = MaterialTheme.shapes.large, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary)) {
+            Text("Geri Dön", fontWeight = FontWeight.Medium, fontSize = 16.sp)
         }
     }
 }
@@ -267,4 +376,4 @@ fun DropdownMenuBox(options: List<String>, selected: String, onSelected: (String
             }
         }
     }
-} 
+}

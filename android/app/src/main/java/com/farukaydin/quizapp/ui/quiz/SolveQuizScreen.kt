@@ -1,11 +1,16 @@
 package com.farukaydin.quizapp.ui.quiz
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import com.farukaydin.quizapp.data.models.QuizResponse
 import com.farukaydin.quizapp.data.models.Question
 import androidx.compose.foundation.rememberScrollState
@@ -15,14 +20,11 @@ import com.farukaydin.quizapp.data.models.AnswerSubmit
 import com.farukaydin.quizapp.data.models.QuizSubmitResult
 import com.farukaydin.quizapp.data.api.ApiService
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizResultScreen(
     result: QuizSubmitResult,
@@ -83,6 +85,7 @@ fun QuizResultScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SolveQuizScreen(
     quiz: QuizResponse,
@@ -109,19 +112,24 @@ fun SolveQuizScreen(
         Column(
             modifier = Modifier
                 .padding(16.dp)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
         ) {
-            Text(quiz.title, style = MaterialTheme.typography.headlineMedium)
+            Text(quiz.title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(16.dp))
             questions.forEach { question ->
-                Text(question.text, style = MaterialTheme.typography.titleMedium)
+                Text(question.text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 question.options.forEachIndexed { idx, option ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
                             selected = answers[question.id] == idx,
-                            onClick = { answers[question.id] = idx }
+                            onClick = { answers[question.id] = idx },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = MaterialTheme.colorScheme.primary,
+                                unselectedColor = MaterialTheme.colorScheme.onSurface
+                            )
                         )
-                        Text(option.text)
+                        Text(option.text, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -155,9 +163,10 @@ fun SolveQuizScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = answers.size == questions.size
+                enabled = answers.size == questions.size,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Bitir")
+                Text("Bitir", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }

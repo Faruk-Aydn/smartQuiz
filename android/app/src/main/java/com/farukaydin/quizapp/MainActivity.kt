@@ -1,10 +1,33 @@
 package com.farukaydin.quizapp
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,22 +40,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.farukaydin.quizapp.ui.auth.LoginViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.farukaydin.quizapp.ui.quiz.QuizListViewModel
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.ui.unit.dp
 import com.farukaydin.quizapp.ui.quiz.CreateQuizScreen
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import com.farukaydin.quizapp.ui.quiz.QuizDetailScreen
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.farukaydin.quizapp.ui.quiz.JoinQuizScreen
 import android.content.Intent
@@ -43,7 +52,11 @@ import com.farukaydin.quizapp.ui.quiz.SolveQuizScreen
 import com.farukaydin.quizapp.data.models.OptionResponse
 import com.farukaydin.quizapp.data.api.RetrofitClient
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.platform.LocalContext
 import com.farukaydin.quizapp.ui.quiz.TeacherResultsScreen
+import com.farukaydin.quizapp.ui.quiz.TeacherHomeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,9 +79,12 @@ class MainActivity : ComponentActivity() {
             }
 
             NavHost(navController, startDestination = "login") {
+                // region Suppress unchecked cast warnings for ViewModelProvider.Factory
+                @Suppress("UNCHECKED_CAST")
                 composable("login") {
                     val loginViewModel: LoginViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                 return LoginViewModel(application) as T
                             }
@@ -87,6 +103,7 @@ class MainActivity : ComponentActivity() {
                 composable("quizList") {
                     val quizListViewModel: QuizListViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                 return QuizListViewModel(application) as T
                             }
@@ -98,6 +115,7 @@ class MainActivity : ComponentActivity() {
                     val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull()
                     val quizListViewModel: QuizListViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                 return QuizListViewModel(application) as T
                             }
@@ -106,12 +124,27 @@ class MainActivity : ComponentActivity() {
                     QuizDetailScreenWithViewModel(
                         quizId = quizId,
                         viewModel = quizListViewModel,
-                        accessToken = accessToken,
                         navController = navController
                     )
                 }
                 composable("teacherHome") {
+                    val context = LocalContext.current
+                    val teacherHomeViewModel: TeacherHomeViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return TeacherHomeViewModel(context.applicationContext as Application) as T
+                            }
+                        }
+                    )
+                    val userName by teacherHomeViewModel.userName.collectAsState()
+                    val teacherAccessToken = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+                        .getString("access_token", null)
+                    LaunchedEffect(teacherAccessToken) {
+                        teacherAccessToken?.let { teacherHomeViewModel.fetchUserName(it) }
+                    }
                     TeacherHomeScreen(
+                        userName = userName,
                         onCreateQuiz = { navController.navigate("createQuiz") },
                         onQuizList = { navController.navigate("quizList") },
                         onResults = { navController.navigate("results") }
@@ -139,6 +172,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
+                // endregion
             }
         }
     }
@@ -157,34 +191,80 @@ fun HomeScreenPreview() {
 
 @Composable
 fun TeacherHomeScreen(
+    userName: String?,
     onCreateQuiz: () -> Unit,
     onQuizList: () -> Unit,
     onResults: () -> Unit
 ) {
-    Column(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Hoşgeldiniz, Öğretmen!", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = androidx.compose.ui.Modifier.height(24.dp))
-        Button(onClick = onCreateQuiz) {
-            Text("Quiz Oluştur")
-        }
-        Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-        Button(onClick = onQuizList) {
-            Text("Quizlerim")
-        }
-        Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-        Button(onClick = onResults) {
-            Text("Sonuçlar")
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = if (!userName.isNullOrBlank()) "Hoşgeldin $userName" else "Hoşgeldin",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp
+                ),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+            TeacherHomeButton(
+                text = "Quiz Oluştur",
+                onClick = onCreateQuiz,
+                icon = null
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            TeacherHomeButton(
+                text = "Quizlerim",
+                onClick = onQuizList,
+                icon = null
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            TeacherHomeButton(
+                text = "Sonuçlar",
+                onClick = onResults,
+                icon = null
+            )
         }
     }
 }
 
 @Composable
-fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel, accessToken: String, navController: androidx.navigation.NavController) {
+fun TeacherHomeButton(text: String, onClick: () -> Unit, icon: (@Composable (() -> Unit))? = null) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        elevation = ButtonDefaults.buttonElevation(6.dp)
+    ) {
+        if (icon != null) {
+            icon()
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        Text(text, fontWeight = FontWeight.Medium, fontSize = 18.sp)
+    }
+}
+
+@Composable
+fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel, navController: androidx.navigation.NavController) {
     if (quizId == null) {
         Text("Quiz ID geçersiz")
         return
     }
-    val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(quizId) {
         viewModel.fetchQuizDetail(quizId)
     }
