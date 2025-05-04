@@ -43,6 +43,4 @@ def create_user(db: Session, user: UserCreate) -> UserSchema:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
-    # Varsayılan olarak STUDENT rolü atanır
-    user.role = UserRole.STUDENT
     return user_crud.create_user(db, user) 

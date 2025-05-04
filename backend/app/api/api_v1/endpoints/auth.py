@@ -10,7 +10,8 @@ from app.core import security
 from app.core.config import settings
 from app.db.models.user import User
 from app.schemas.token import Token
-from app.services.user_service import authenticate_user
+from app.schemas.user import UserCreate, UserResponse
+from app.services.user_service import authenticate_user, create_user
 
 router = APIRouter()
 
@@ -44,3 +45,8 @@ def login_access_token(
         ),
         "token_type": "bearer",
     }
+
+@router.post("/register", response_model=UserResponse)
+def register_user(user_in: UserCreate, db: Session = Depends(deps.get_db)):
+    user = create_user(db, user_in)
+    return user
