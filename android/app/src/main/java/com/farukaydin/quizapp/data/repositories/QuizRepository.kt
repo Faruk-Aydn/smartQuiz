@@ -46,4 +46,7 @@ class QuizRepository(private val apiService: ApiService) {
         val response = apiService.addQuestion(question, "Bearer $token")
         return response.isSuccessful
     }
+
+    suspend fun getQuizResults(quizId: Int, token: String) =
+        apiService.getQuizResults(quizId, "Bearer $token")
 } 

@@ -18,6 +18,12 @@ data class QuizDetailState(
     val error: String? = null
 )
 
+data class QuizResultsState(
+    val results: List<StudentQuizResult> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 class QuizListViewModel(application: Application) : AndroidViewModel(application) {
     private val quizRepository = QuizRepository(RetrofitClient.apiService)
     private val _uiState = MutableStateFlow(QuizListUiState(isLoading = true))
@@ -25,6 +31,9 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
 
     private val _quizDetailState = MutableStateFlow(QuizDetailState(isLoading = false))
     val quizDetailState: StateFlow<QuizDetailState> = _quizDetailState.asStateFlow()
+
+    private val _quizResultsState = MutableStateFlow(QuizResultsState())
+    val quizResultsState: StateFlow<QuizResultsState> = _quizResultsState.asStateFlow()
 
     private val sharedPrefs = application.getSharedPreferences("quiz_app_prefs", Application.MODE_PRIVATE)
     private val token = sharedPrefs.getString("access_token", null)
@@ -101,5 +110,24 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
             return result
         }
         return false
+    }
+
+    fun fetchQuizResults(quizId: Int) {
+        viewModelScope.launch {
+            _quizResultsState.value = QuizResultsState(isLoading = true)
+            try {
+                if (token != null) {
+                    val response = quizRepository.getQuizResults(quizId, token)
+                    if (response.isSuccessful && response.body() != null) {
+                        val sorted = response.body()!!.sortedByDescending { it.score }
+                        _quizResultsState.value = QuizResultsState(results = sorted)
+                    } else {
+                        _quizResultsState.value = QuizResultsState(error = "Sonuçlar alınamadı: ${response.message()}")
+                    }
+                }
+            } catch (e: Exception) {
+                _quizResultsState.value = QuizResultsState(error = "Hata: ${e.localizedMessage}")
+            }
+        }
     }
 } 

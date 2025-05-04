@@ -39,10 +39,17 @@ import android.content.Intent
 import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanContract
 import androidx.activity.compose.rememberLauncherForActivityResult
+import com.farukaydin.quizapp.ui.quiz.SolveQuizScreen
+import com.farukaydin.quizapp.data.models.OptionResponse
+import com.farukaydin.quizapp.data.api.RetrofitClient
+import android.content.Context
+import com.farukaydin.quizapp.ui.quiz.TeacherResultsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val accessToken = getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+            .getString("access_token", null) ?: ""
         setContent {
             val navController = rememberNavController()
 
@@ -96,7 +103,12 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
-                    QuizDetailScreenWithViewModel(quizId = quizId, viewModel = quizListViewModel)
+                    QuizDetailScreenWithViewModel(
+                        quizId = quizId,
+                        viewModel = quizListViewModel,
+                        accessToken = accessToken,
+                        navController = navController
+                    )
                 }
                 composable("teacherHome") {
                     TeacherHomeScreen(
@@ -112,7 +124,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 composable("results") {
-                    HomeScreen()
+                    TeacherResultsScreen()
                 }
                 composable("joinQuiz") {
                     JoinQuizScreen(
@@ -167,18 +179,15 @@ fun TeacherHomeScreen(
 }
 
 @Composable
-fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel) {
+fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel, accessToken: String, navController: androidx.navigation.NavController) {
     if (quizId == null) {
         Text("Quiz ID geçersiz")
         return
     }
-    
     val coroutineScope = rememberCoroutineScope()
-    
     LaunchedEffect(quizId) {
         viewModel.fetchQuizDetail(quizId)
     }
-    
     val quizDetailState = viewModel.quizDetailState.collectAsState().value
     when {
         quizDetailState.isLoading -> {
@@ -188,14 +197,11 @@ fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel) {
             Text(text = quizDetailState.error, color = MaterialTheme.colorScheme.error)
         }
         quizDetailState.quiz != null -> {
-            QuizDetailScreen(
+            SolveQuizScreen(
                 quiz = quizDetailState.quiz,
                 questions = quizDetailState.questions,
-                onAddQuestion = { text, options, correctOption ->
-                    coroutineScope.launch {
-                        viewModel.addQuestionToQuiz(quizDetailState.quiz.id, text, options, correctOption)
-                    }
-                }
+                apiService = RetrofitClient.apiService,
+                onHome = { navController.navigate("joinQuiz") }
             )
         }
         else -> {

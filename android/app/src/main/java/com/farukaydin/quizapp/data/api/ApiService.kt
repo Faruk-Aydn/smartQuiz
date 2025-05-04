@@ -54,6 +54,19 @@ interface ApiService {
     // Response endpoints
     @POST("responses")
     suspend fun submitResponse(@Body response: ResponseCreate): Response<Unit>
+
+    @POST("quizzes/{quiz_id}/submit")
+    suspend fun submitQuiz(
+        @Path("quiz_id") quizId: Int,
+        @Body request: QuizSubmitRequest,
+        @Header("Authorization") token: String
+    ): QuizSubmitResult
+
+    @GET("quizzes/{quiz_id}/results")
+    suspend fun getQuizResults(
+        @Path("quiz_id") quizId: Int,
+        @Header("Authorization") token: String
+    ): Response<List<StudentQuizResult>>
 }
 
 data class ResponseCreate(
