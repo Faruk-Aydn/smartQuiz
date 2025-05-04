@@ -11,6 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.farukaydin.quizapp.data.models.QuizResponse
 import com.farukaydin.quizapp.data.models.Question
+import android.util.Base64
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.runtime.remember
 
 @Composable
 fun QuizDetailScreen(
@@ -28,6 +33,28 @@ fun QuizDetailScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = quiz.description ?: "", style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(16.dp))
+
+            // QR kodu göster
+            quiz.qr_code?.let { qrCodeString ->
+                val base64Image = qrCodeString.substringAfter("base64,")
+                val imageBytes = remember(qrCodeString) { Base64.decode(base64Image, Base64.DEFAULT) }
+                val bitmap = remember(qrCodeString) { BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size) }
+                bitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = "Quiz QR Kodu",
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(vertical = 16.dp)
+                    )
+                }
+            }
+            // Quiz kodunu göster
+            Text(
+                text = "Quiz Kodu: ${quiz.id}",
+                style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
         if (questions.isEmpty()) {

@@ -34,12 +34,30 @@ import com.farukaydin.quizapp.ui.quiz.QuizDetailScreen
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import com.farukaydin.quizapp.ui.quiz.JoinQuizScreen
+import android.content.Intent
+import com.journeyapps.barcodescanner.ScanOptions
+import com.journeyapps.barcodescanner.ScanContract
+import androidx.activity.compose.rememberLauncherForActivityResult
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+
+            // ZXing QR kod okuma launcher
+            val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
+                val scannedText = result.contents
+                scannedText?.let {
+                    // Ör: akilliquiz://quiz/5
+                    val quizId = it.substringAfterLast("/").toIntOrNull()
+                    quizId?.let { id ->
+                        navController.navigate("quizDetail/$id")
+                    }
+                }
+            }
+
             NavHost(navController, startDestination = "login") {
                 composable("login") {
                     val loginViewModel: LoginViewModel = viewModel(
@@ -50,7 +68,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     LoginScreen(
-                        onStudent = { navController.navigate("quizList") },
+                        onStudent = { navController.navigate("joinQuiz") },
                         onTeacher = { navController.navigate("teacherHome") },
                         onRegisterClick = { navController.navigate("register") },
                         viewModel = loginViewModel
@@ -95,6 +113,19 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("results") {
                     HomeScreen()
+                }
+                composable("joinQuiz") {
+                    JoinQuizScreen(
+                        onJoinQuiz = { quizId ->
+                            navController.navigate("quizDetail/$quizId")
+                        },
+                        onScanQr = {
+                            val options = ScanOptions()
+                            options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                            options.setPrompt("QR kodu okutunuz")
+                            qrScanLauncher.launch(options)
+                        }
+                    )
                 }
             }
         }
