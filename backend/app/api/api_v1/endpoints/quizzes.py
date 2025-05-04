@@ -13,6 +13,8 @@ from app.crud.quiz import create_quiz, get_quiz, update_quiz, generate_qr_code, 
 from app.services.ai_service import get_ai_service
 from pydantic import BaseModel
 from app.services.quiz_service import generate_ai_questions
+from app.schemas.score import StudentQuizResult, ScoreCreate
+from app.crud.score import get_quiz_results, create_score
 
 router = APIRouter()
 
@@ -246,3 +248,61 @@ def add_question_to_quiz(
     db.commit()
     db.refresh(question)
     return QuestionResponse.from_orm(question)
+
+class AnswerSubmit(BaseModel):
+    question_id: int
+    selected_option: int
+
+class QuizSubmitRequest(BaseModel):
+    answers: List[AnswerSubmit]
+
+class QuizSubmitResult(BaseModel):
+    correct: int
+    wrong: int
+    score: int
+
+@router.post("/{quiz_id}/submit", response_model=QuizSubmitResult)
+def submit_quiz(
+    quiz_id: int,
+    req: QuizSubmitRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    quiz = get_quiz(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz bulunamadı")
+    correct = 0
+    wrong = 0
+    for answer in req.answers:
+        question = next((q for q in quiz.questions if q.id == answer.question_id), None)
+        if question and question.options[answer.selected_option].is_correct:
+            correct += 1
+        else:
+            wrong += 1
+    score = int((correct / len(quiz.questions)) * 100) if quiz.questions else 0
+
+    # Score kaydı oluştur
+    if current_user.role == UserRole.STUDENT:
+        score_obj = ScoreCreate(
+            student_id=current_user.id,
+            total_points=score,
+            quizzes_completed=1,  # veya uygun şekilde
+            correct=correct,
+            wrong=wrong
+        )
+        create_score(db, score_obj, student_id=current_user.id, quiz_id=quiz_id)
+
+    return QuizSubmitResult(correct=correct, wrong=wrong, score=score)
+
+@router.get("/{quiz_id}/results", response_model=List[StudentQuizResult])
+def quiz_results(
+    quiz_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz bulunamadı")
+    if current_user.role != UserRole.TEACHER or quiz.teacher_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Yetkiniz yok")
+    return get_quiz_results(db, quiz_id)

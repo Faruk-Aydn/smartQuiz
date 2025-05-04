@@ -7,6 +7,8 @@ from app.db.base_class import Base
 class Score(Base):
     id = Column(Integer, primary_key=True, index=True)
     score = Column(Integer, default=0)
+    correct = Column(Integer, default=0)
+    wrong = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     # İlişkiler

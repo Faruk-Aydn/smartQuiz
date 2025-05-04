@@ -42,11 +42,26 @@ def create_score(
     Create a new score record
     """
     db_score = Score(
-        score=score.score,
+        score=score.total_points,
         student_id=student_id,
-        quiz_id=quiz_id
+        quiz_id=quiz_id,
+        correct=score.correct,
+        wrong=score.wrong
     )
     db.add(db_score)
     db.commit()
     db.refresh(db_score)
     return db_score
+
+def get_quiz_results(db: Session, quiz_id: int):
+    # Score tablosunda quiz_id'ye göre tüm skorları çek, öğrenci adını da ekle
+    results = db.query(Score).filter(Score.quiz_id == quiz_id).all()
+    output = []
+    for r in results:
+        output.append({
+            "studentName": r.student.username if r.student else "-",
+            "correct": r.correct,
+            "wrong": r.wrong,
+            "score": r.score
+        })
+    return output

@@ -7,6 +7,8 @@ class ScoreBase(BaseModel):
 
 class ScoreCreate(ScoreBase):
     student_id: int
+    correct: int
+    wrong: int
 
 class ScoreUpdate(ScoreBase):
     pass
@@ -20,3 +22,9 @@ class ScoreResponse(ScoreBase):
 
     class Config:
         from_attributes = True
+
+class StudentQuizResult(BaseModel):
+    studentName: str
+    correct: int
+    wrong: int
+    score: int
