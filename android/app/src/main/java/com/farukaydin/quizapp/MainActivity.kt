@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -54,9 +53,14 @@ import com.farukaydin.quizapp.data.api.RetrofitClient
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.farukaydin.quizapp.ui.quiz.TeacherResultsScreen
 import com.farukaydin.quizapp.ui.quiz.TeacherHomeViewModel
+import com.farukaydin.quizapp.ui.profile.ProfileScreen
+import com.farukaydin.quizapp.ui.profile.ProfileViewModel
+import com.farukaydin.quizapp.data.repositories.UserRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,7 +95,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     LoginScreen(
-                        onStudent = { navController.navigate("joinQuiz") },
+                        onStudent = { navController.navigate("studentHome") },
                         onTeacher = { navController.navigate("teacherHome") },
                         onRegisterClick = { navController.navigate("register") },
                         viewModel = loginViewModel
@@ -129,25 +133,38 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("teacherHome") {
                     val context = LocalContext.current
-                    val teacherHomeViewModel: TeacherHomeViewModel = viewModel(
-                        factory = object : ViewModelProvider.Factory {
+                    val userRepository = remember { UserRepository(RetrofitClient.apiService, context) }
+                    val profileViewModel: ProfileViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
                             @Suppress("UNCHECKED_CAST")
-                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                return TeacherHomeViewModel(context.applicationContext as Application) as T
-                            }
+                            return ProfileViewModel(userRepository) as T
                         }
-                    )
-                    val userName by teacherHomeViewModel.userName.collectAsState()
-                    val teacherAccessToken = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
-                        .getString("access_token", null)
-                    LaunchedEffect(teacherAccessToken) {
-                        teacherAccessToken?.let { teacherHomeViewModel.fetchUserName(it) }
-                    }
-                    TeacherHomeScreen(
-                        userName = userName,
+                    })
+                    val user by profileViewModel.user.collectAsState()
+                    LaunchedEffect(Unit) { profileViewModel.loadProfile() }
+                    com.farukaydin.quizapp.ui.quiz.TeacherHomeScreen(
+                        userName = user?.username ?: "",
+                        onProfileClick = { navController.navigate("profile") },
                         onCreateQuiz = { navController.navigate("createQuiz") },
                         onQuizList = { navController.navigate("quizList") },
                         onResults = { navController.navigate("results") }
+                    )
+                }
+                composable("studentHome") {
+                    val context = LocalContext.current
+                    val userRepository = remember { UserRepository(RetrofitClient.apiService, context) }
+                    val profileViewModel: ProfileViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
+                            return ProfileViewModel(userRepository) as T
+                        }
+                    })
+                    val user by profileViewModel.user.collectAsState()
+                    LaunchedEffect(Unit) { profileViewModel.loadProfile() }
+                    StudentHomeScreen(
+                        userName = user?.username ?: "",
+                        onProfileClick = { navController.navigate("profile") },
+                        onJoinQuizClick = { navController.navigate("joinQuiz") }
                     )
                 }
                 composable("createQuiz") {
@@ -172,6 +189,22 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
+                composable("profile") {
+                    val context = LocalContext.current
+                    val userRepository = remember { UserRepository(RetrofitClient.apiService, context) }
+                    val profileViewModel: ProfileViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
+                            return ProfileViewModel(userRepository) as T
+                        }
+                    })
+                    val user by profileViewModel.user.collectAsState()
+                    LaunchedEffect(Unit) { profileViewModel.loadProfile() }
+                    ProfileScreen(
+                        user = user,
+                        onSave = { profileViewModel.updateProfile(it) }
+                    )
+                }
                 // endregion
             }
         }
@@ -190,11 +223,10 @@ fun HomeScreenPreview() {
 }
 
 @Composable
-fun TeacherHomeScreen(
-    userName: String?,
-    onCreateQuiz: () -> Unit,
-    onQuizList: () -> Unit,
-    onResults: () -> Unit
+fun StudentHomeScreen(
+    userName: String,
+    onProfileClick: () -> Unit,
+    onJoinQuizClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -208,7 +240,7 @@ fun TeacherHomeScreen(
             verticalArrangement = Arrangement.Top
         ) {
             Text(
-                text = if (!userName.isNullOrBlank()) "Hoşgeldin $userName" else "Hoşgeldin",
+                text = "Hoşgeldin $userName",
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp
@@ -216,46 +248,36 @@ fun TeacherHomeScreen(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
-            TeacherHomeButton(
-                text = "Quiz Oluştur",
-                onClick = onCreateQuiz,
-                icon = null
-            )
+            Button(
+                onClick = onProfileClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                elevation = ButtonDefaults.buttonElevation(6.dp)
+            ) {
+                Text("Profilim", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+            }
             Spacer(modifier = Modifier.height(18.dp))
-            TeacherHomeButton(
-                text = "Quizlerim",
-                onClick = onQuizList,
-                icon = null
-            )
-            Spacer(modifier = Modifier.height(18.dp))
-            TeacherHomeButton(
-                text = "Sonuçlar",
-                onClick = onResults,
-                icon = null
-            )
+            Button(
+                onClick = onJoinQuizClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                elevation = ButtonDefaults.buttonElevation(6.dp)
+            ) {
+                Text("Quiz'e Katıl", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+            }
         }
-    }
-}
-
-@Composable
-fun TeacherHomeButton(text: String, onClick: () -> Unit, icon: (@Composable (() -> Unit))? = null) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
-        elevation = ButtonDefaults.buttonElevation(6.dp)
-    ) {
-        if (icon != null) {
-            icon()
-            Spacer(modifier = Modifier.width(10.dp))
-        }
-        Text(text, fontWeight = FontWeight.Medium, fontSize = 18.sp)
     }
 }
 

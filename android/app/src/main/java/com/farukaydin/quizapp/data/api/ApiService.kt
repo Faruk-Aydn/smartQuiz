@@ -16,6 +16,9 @@ interface ApiService {
     @GET("users/me")
     suspend fun getCurrentUser(@Header("Authorization") token: String): Response<User>
 
+    @PUT("users/me")
+    suspend fun updateCurrentUser(@Body user: User, @Header("Authorization") token: String): Response<User>
+
     // Quiz endpoints
     @GET("student/available-quizzes")
     suspend fun getAvailableQuizzes(@Header("Authorization") token: String): Response<List<Quiz>>

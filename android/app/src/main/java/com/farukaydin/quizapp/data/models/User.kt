@@ -4,7 +4,9 @@ data class User(
     val id: Int,
     val email: String,
     val username: String,
-    val role: String
+    val fullName: String?,
+    val role: String,
+    val isActive: Boolean = true
 )
 
 data class UserCreate(
