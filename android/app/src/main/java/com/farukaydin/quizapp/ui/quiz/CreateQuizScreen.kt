@@ -127,6 +127,13 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
     val aiQuizSuccess = viewModel.aiQuizSuccess
     val context = LocalContext.current
 
+    // Başarıyla quiz oluşturulunca callback'i tetikle
+    if (aiQuizSuccess) {
+        LaunchedEffect(Unit) {
+            onQuizCreated()
+        }
+    }
+
     val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", 0)
     val token = sharedPrefs.getString("access_token", null) ?: ""
 
@@ -222,10 +229,6 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
         }
         error?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error)
-        }
-        if (aiQuizSuccess) {
-            Text("Quiz başarıyla oluşturuldu!", color = MaterialTheme.colorScheme.primary)
-            onQuizCreated()
         }
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth().height(56.dp), shape = MaterialTheme.shapes.large, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary)) {
