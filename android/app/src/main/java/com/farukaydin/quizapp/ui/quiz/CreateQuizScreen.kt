@@ -322,7 +322,14 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                 scope.launch {
                     try {
                         val repo = QuizRepository(RetrofitClient.apiService)
-                        val response = repo.createQuiz(title, description, subject, gradeLevel, "dummy-token")
+                        val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", android.content.Context.MODE_PRIVATE)
+                        val token = sharedPrefs.getString("access_token", null)
+                        if (token.isNullOrBlank()) {
+                            error = "Oturum hatası: Lütfen tekrar giriş yapın."
+                            isLoading = false
+                            return@launch
+                        }
+                        val response = repo.createQuiz(title, description, subject, gradeLevel, token)
                         if (response.isSuccessful && response.body() != null) {
                             success = true
                             onQuizCreated()
