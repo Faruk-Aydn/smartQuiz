@@ -239,6 +239,8 @@ def add_question_to_quiz(
         raise HTTPException(status_code=404, detail="Quiz bulunamadı")
     if current_user.role != UserRole.TEACHER or quiz.teacher_id != current_user.id:
         raise HTTPException(status_code=403, detail="Yeterli izniniz yok")
+    if len(question_in.options) != 5:
+        raise HTTPException(status_code=400, detail="Her soru için tam olarak 5 seçenek girilmelidir.")
     question = Question(
         text=question_in.text,
         question_type=question_in.question_type,

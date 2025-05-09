@@ -23,28 +23,29 @@ class GeminiService:
             Soru listesi
         """
         prompt = f"""
-        Lütfen aşağıdaki konuda {num_questions} adet {difficulty} zorluk seviyesinde quiz sorusu oluştur:
-        
-        Konu: {topic}
-        
-        Her soru için 4 seçenek oluştur ve doğru cevabı belirt.
-        Yanıtı aşağıdaki JSON formatında döndür:
-        
-        [
-          {{
-            "question": "Soru metni",
-            "options": [
-              {{ "text": "Seçenek 1", "is_correct": false }},
-              {{ "text": "Seçenek 2", "is_correct": true }},
-              {{ "text": "Seçenek 3", "is_correct": false }},
-              {{ "text": "Seçenek 4", "is_correct": false }}
-            ],
-            "explanation": "Doğru cevabın açıklaması"
-          }}
-        ]
-        
-        Sadece JSON çıktısını döndür, başka açıklama ekleme.
-        """
+Lütfen aşağıdaki konuda {num_questions} adet {difficulty} zorluk seviyesinde quiz sorusu oluştur:
+
+Konu: {topic}
+
+Her soru için 5 seçenek oluştur. Her soruda sadece bir tane "is_correct": true olacak. Diğer tüm seçeneklerde "is_correct": false olacak. Doğru cevabın hangi sırada olduğu rastgele olabilir, her zaman ilk sırada olmasın!
+
+Yanıtı aşağıdaki JSON formatında döndür:
+[
+  {{
+    "question": "Soru metni",
+    "options": [
+      {{ "text": "Seçenek 1", "is_correct": false }},
+      {{ "text": "Seçenek 2", "is_correct": true }},
+      {{ "text": "Seçenek 3", "is_correct": false }},
+      {{ "text": "Seçenek 4", "is_correct": false }},
+      {{ "text": "Seçenek 5", "is_correct": false }}
+    ],
+    "explanation": "Doğru cevabın açıklaması"
+  }}
+]
+
+Sadece JSON çıktısını döndür, başka açıklama ekleme. Her soruda sadece bir tane is_correct: true olacak şekilde üret.
+"""
         
         response = self._call_gemini_api(prompt)
         

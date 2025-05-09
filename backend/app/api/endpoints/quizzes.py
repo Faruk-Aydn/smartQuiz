@@ -23,7 +23,7 @@ def create_new_quiz(
             detail="Sadece öğretmenler quiz oluşturabilir"
         )
     
-    # Quiz oluştur
+    # Quiz oluştu
     quiz = create_quiz(db, obj_in=quiz_in, teacher_id=current_user.id)
     
     # QR kod oluştur
