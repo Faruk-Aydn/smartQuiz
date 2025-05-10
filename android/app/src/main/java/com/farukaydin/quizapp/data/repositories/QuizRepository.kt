@@ -8,9 +8,16 @@ import com.farukaydin.quizapp.data.models.QuizResponse
 import com.farukaydin.quizapp.data.models.QuestionCreate
 import com.farukaydin.quizapp.data.models.QuizWithQuestions
 import com.farukaydin.quizapp.data.models.Question
+import com.farukaydin.quizapp.data.models.SolvedQuizInfo
+import com.farukaydin.quizapp.data.models.StudentAnswerDetail
+import com.farukaydin.quizapp.data.models.StudentQuizResultDetail
 import retrofit2.Response
 
 class QuizRepository(private val apiService: ApiService) {
+    suspend fun getSolvedQuizzes(token: String): Response<List<SolvedQuizInfo>> {
+        return apiService.getSolvedQuizzes("Bearer $token")
+    }
+
     suspend fun getQuizzes(token: String): Response<List<Quiz>> {
         return apiService.getQuizzes(token)
     }
@@ -65,4 +72,8 @@ class QuizRepository(private val apiService: ApiService) {
     suspend fun deleteQuestion(questionId: Int, token: String): Response<Unit> {
         return apiService.deleteQuestion(questionId, "Bearer $token")
     }
-} 
+
+    suspend fun getStudentResults(quizId: Int, token: String): Response<StudentQuizResultDetail> {
+        return apiService.getStudentResults(quizId, "Bearer $token")
+    }
+}

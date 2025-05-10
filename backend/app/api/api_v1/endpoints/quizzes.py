@@ -353,6 +353,8 @@ def submit_quiz(
     db.flush()
     score = int((correct / len(quiz.questions)) * 100) if quiz.questions else 0
     db_response.total_score = score
+    import datetime
+    db_response.completed_at = datetime.datetime.utcnow()
     # 3. Score kaydı oluştur
     if current_user.role == UserRole.STUDENT:
         score_obj = ScoreCreate(

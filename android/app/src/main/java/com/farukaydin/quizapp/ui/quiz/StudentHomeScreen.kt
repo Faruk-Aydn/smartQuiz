@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
 fun StudentHomeScreen(
     userName: String?,
     onProfileClick: () -> Unit,
-    onJoinQuizClick: () -> Unit
+    onJoinQuizClick: () -> Unit,
+    onResultsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -52,6 +53,16 @@ fun StudentHomeScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
+            onClick = onProfileClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Profilim", style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
             onClick = onJoinQuizClick,
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,6 +70,16 @@ fun StudentHomeScreen(
             shape = MaterialTheme.shapes.medium
         ) {
             Text("Quiz'e Katıl", style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onResultsClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Sonuçlarım", style = MaterialTheme.typography.titleMedium)
         }
     }
 }

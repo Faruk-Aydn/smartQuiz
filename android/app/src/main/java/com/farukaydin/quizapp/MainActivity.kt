@@ -186,7 +186,8 @@ class MainActivity : ComponentActivity() {
                     StudentHomeScreen(
                         userName = user?.username ?: "",
                         onProfileClick = { navController.navigate("profile") },
-                        onJoinQuizClick = { navController.navigate("joinQuiz") }
+                        onJoinQuizClick = { navController.navigate("joinQuiz") },
+                        onResultsClick = { navController.navigate("studentResults") }
                     )
                 }
                 composable("createQuiz") {
@@ -229,6 +230,35 @@ class MainActivity : ComponentActivity() {
                         onSave = { profileViewModel.updateProfile(it) }
                     )
                 }
+                composable("studentResults") {
+                    val context = LocalContext.current
+                    val repository = remember { com.farukaydin.quizapp.data.repositories.QuizRepository(com.farukaydin.quizapp.data.api.RetrofitClient.apiService) }
+                    val accessToken = context.getSharedPreferences("quiz_app_prefs", android.content.Context.MODE_PRIVATE).getString("access_token", null) ?: ""
+                    val viewModel: com.farukaydin.quizapp.ui.StudentResultViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                        factory = com.farukaydin.quizapp.ui.StudentResultViewModelFactory(repository)
+                    )
+                    val solvedQuizzes by viewModel.solvedQuizzes
+                    val selectedQuizId by viewModel.selectedQuizId
+                    val quizResultDetail by viewModel.quizResultDetail
+                    val isLoading by viewModel.isLoading
+
+                    androidx.compose.runtime.LaunchedEffect(Unit) {
+                        viewModel.fetchSolvedQuizzes(accessToken)
+                    }
+
+                    if (isLoading) {
+                        androidx.compose.material3.CircularProgressIndicator()
+                    } else if (selectedQuizId == null) {
+                        com.farukaydin.quizapp.ui.StudentSolvedQuizListScreen(
+                            solvedQuizzes = solvedQuizzes,
+                            onQuizSelected = { quiz ->
+                                viewModel.selectQuizAndFetchResults(quiz.quiz_id, accessToken)
+                            }
+                        )
+                    } else {
+                        com.farukaydin.quizapp.ui.StudentResultScreen(quizResultDetail = quizResultDetail)
+                    }
+                }
                 // endregion
             }
         }
@@ -250,7 +280,8 @@ fun HomeScreenPreview() {
 fun StudentHomeScreen(
     userName: String,
     onProfileClick: () -> Unit,
-    onJoinQuizClick: () -> Unit
+    onJoinQuizClick: () -> Unit,
+    onResultsClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -300,6 +331,21 @@ fun StudentHomeScreen(
                 elevation = ButtonDefaults.buttonElevation(6.dp)
             ) {
                 Text("Quiz'e Katıl", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+            Button(
+                onClick = onResultsClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                elevation = ButtonDefaults.buttonElevation(6.dp)
+            ) {
+                Text("Sonuçlarım", fontWeight = FontWeight.Medium, fontSize = 18.sp)
             }
         }
     }

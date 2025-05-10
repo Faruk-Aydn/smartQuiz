@@ -20,3 +20,4 @@ class Question(Base):
     quiz = relationship("Quiz", back_populates="questions")
     options = relationship("Option", back_populates="question", cascade="all, delete-orphan")
     student_answers = relationship("StudentAnswer", back_populates="question")
+    answers = relationship("Answer", back_populates="question", cascade="all, delete-orphan")

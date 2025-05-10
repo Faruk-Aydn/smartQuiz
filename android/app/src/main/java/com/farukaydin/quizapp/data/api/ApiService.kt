@@ -5,6 +5,8 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
+    @GET("student/solved-quizzes")
+    suspend fun getSolvedQuizzes(@Header("Authorization") token: String): Response<List<SolvedQuizInfo>>
     @PUT("questions/{question_id}/set-correct-option")
     suspend fun setCorrectOption(
         @Path("question_id") questionId: Int,
@@ -90,6 +92,12 @@ interface ApiService {
         @Path("quiz_id") quizId: Int,
         @Header("Authorization") token: String
     ): Response<QuizDetailedResult>
+
+    @GET("student/results/{quiz_id}")
+    suspend fun getStudentResults(
+        @Path("quiz_id") quizId: Int,
+        @Header("Authorization") token: String
+    ): Response<StudentQuizResultDetail>
 
     @DELETE("quizzes/{quiz_id}")
     suspend fun deleteQuiz(@Path("quiz_id") quizId: Int, @Header("Authorization") token: String): Response<Quiz>
