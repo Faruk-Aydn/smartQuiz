@@ -23,7 +23,8 @@ fun TeacherHomeScreen(
     onProfileClick: () -> Unit,
     onCreateQuiz: () -> Unit,
     onQuizList: () -> Unit,
-    onResults: () -> Unit
+    onResults: () -> Unit,
+    onDetailedResults: (quizId: Int) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -90,6 +91,7 @@ fun TeacherHomeScreen(
                 Text("Quizlerim", fontWeight = FontWeight.Medium, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.height(18.dp))
+
             Button(
                 onClick = onResults,
                 modifier = Modifier
@@ -104,6 +106,7 @@ fun TeacherHomeScreen(
             ) {
                 Text("Sonuçlar", fontWeight = FontWeight.Medium, fontSize = 18.sp)
             }
+
         }
     }
 }

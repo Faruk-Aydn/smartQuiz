@@ -5,6 +5,13 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
+    @PUT("questions/{question_id}/set-correct-option")
+    suspend fun setCorrectOption(
+        @Path("question_id") questionId: Int,
+        @Body body: Map<String, Int>,
+        @Header("Authorization") token: String
+    ): retrofit2.Response<Question>
+
     // Auth endpoints
     @POST("auth/login")
     suspend fun login(@Body loginRequest: UserLogin): Response<LoginResponse>
@@ -77,6 +84,12 @@ interface ApiService {
         @Path("quiz_id") quizId: Int,
         @Header("Authorization") token: String
     ): Response<List<StudentQuizResult>>
+
+    @GET("quizzes/{quiz_id}/detailed-results")
+    suspend fun getQuizDetailedResults(
+        @Path("quiz_id") quizId: Int,
+        @Header("Authorization") token: String
+    ): Response<QuizDetailedResult>
 
     @DELETE("quizzes/{quiz_id}")
     suspend fun deleteQuiz(@Path("quiz_id") quizId: Int, @Header("Authorization") token: String): Response<Quiz>

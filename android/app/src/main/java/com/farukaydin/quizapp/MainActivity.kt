@@ -58,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.farukaydin.quizapp.ui.quiz.TeacherResultsScreen
 import com.farukaydin.quizapp.ui.quiz.TeacherHomeViewModel
+import com.farukaydin.quizapp.ui.quiz.TeacherDetailedResultsScreen
 import com.farukaydin.quizapp.ui.profile.ProfileScreen
 import com.farukaydin.quizapp.ui.profile.ProfileViewModel
 import com.farukaydin.quizapp.data.repositories.UserRepository
@@ -147,8 +148,29 @@ class MainActivity : ComponentActivity() {
                         onProfileClick = { navController.navigate("profile") },
                         onCreateQuiz = { navController.navigate("createQuiz") },
                         onQuizList = { navController.navigate("quizList") },
-                        onResults = { navController.navigate("results") }
+                        onResults = { navController.navigate("results") },
+                        onDetailedResults = { quizId -> navController.navigate("teacherDetailedResults/$quizId") }
                     )
+                }
+                composable("teacherDetailedResults/{quizId}") { backStackEntry ->
+                    val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull()
+                    val context = LocalContext.current
+                    val quizListViewModel: QuizListViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return QuizListViewModel(context.applicationContext as Application) as T
+                            }
+                        }
+                    )
+                    if (quizId != null) {
+                        TeacherDetailedResultsScreen(
+    quizId = quizId,
+    viewModel = quizListViewModel,
+    onBack = { navController.popBackStack() }
+)
+                    } else {
+                        Text("Quiz ID bulunamadı")
+                    }
                 }
                 composable("studentHome") {
                     val context = LocalContext.current
@@ -174,7 +196,9 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 composable("results") {
-                    TeacherResultsScreen()
+                    TeacherResultsScreen(
+    onQuizClick = { quizId -> navController.navigate("teacherDetailedResults/$quizId") }
+)
                 }
                 composable("joinQuiz") {
                     JoinQuizScreen(

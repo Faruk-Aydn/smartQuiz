@@ -239,6 +239,13 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
 
 @Composable
 fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
+    // --- Ensure 5 options per question ---
+    // Example for one question, repeat for all questions in the form logic
+    // Replace any dynamic or 4-option logic with a fixed list of 5 option fields
+    // (Implementation will be below this line)
+    // ...
+    // Add validation to prevent submission unless all 5 options are filled
+
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }

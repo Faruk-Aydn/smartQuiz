@@ -5,7 +5,7 @@ import com.farukaydin.quizapp.data.models.OptionCreate
 data class Question(
     val id: Int,
     val text: String,
-    val options: List<OptionResponse>,
+    val options: List<Option>,
     val correctOption: Int,
     val quizId: Int
 )

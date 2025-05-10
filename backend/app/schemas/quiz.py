@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
-from app.schemas.question import QuestionResponse
+from app.schemas.question import QuestionResponse, QuestionCreate
 
 class QuizBase(BaseModel):
     title: str
@@ -11,7 +11,7 @@ class QuizBase(BaseModel):
     grade_level: str
 
 class QuizCreate(QuizBase):
-    pass
+    questions: List[QuestionCreate] = []
 
 class QuizUpdate(QuizBase):
     is_active: Optional[bool] = None

@@ -11,6 +11,9 @@ from app.core.ai import generate_questions
 
 router = APIRouter()
 
+from app.api.endpoints.quiz_results import router as quiz_results_router
+router.include_router(quiz_results_router)
+
 @router.post("/", response_model=QuizResponse)
 def create_new_quiz(
     quiz_in: QuizCreate,
@@ -25,7 +28,32 @@ def create_new_quiz(
     
     # Quiz oluştu
     quiz = create_quiz(db, obj_in=quiz_in, teacher_id=current_user.id)
-    
+    db.commit()
+    db.refresh(quiz)
+
+    # QuizCreate ile birlikte sorular ve şıklar geldiyse, ekle
+    for question_in in quiz_in.questions:
+        question = Question(
+            text=question_in.text,
+            question_type=question_in.question_type,
+            points=question_in.points,
+            quiz_id=quiz.id
+        )
+        db.add(question)
+        db.commit()
+        db.refresh(question)
+        for opt in question_in.options:
+            if not opt.text or not opt.text.strip():
+                raise HTTPException(status_code=400, detail="Şık metni (option.text) boş olamaz!")
+            option = Option(
+                text=opt.text.strip(),
+                is_correct=opt.is_correct,
+                question_id=question.id
+            )
+            db.add(option)
+        db.commit()
+    db.refresh(quiz)
+
     # QR kod oluştur
     qr_code = generate_qr_code(quiz.id)
     

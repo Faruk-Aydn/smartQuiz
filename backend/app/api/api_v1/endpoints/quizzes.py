@@ -19,6 +19,9 @@ from app.crud.score import get_quiz_results, create_score
 
 router = APIRouter()
 
+from sqlalchemy.orm import joinedload
+
+
 @router.post("/", response_model=QuizResponse)
 def create_quiz_endpoint(
     *,
@@ -35,6 +38,31 @@ def create_quiz_endpoint(
             detail="Yeterli izniniz yok",
         )
     quiz = create_quiz(db=db, obj_in=quiz_in, teacher_id=current_user.id)
+    db.commit()
+    db.refresh(quiz)
+
+    # QuizCreate ile birlikte sorular ve şıklar geldiyse, ekle
+    for question_in in getattr(quiz_in, "questions", []):
+        question = Question(
+            text=question_in.text.strip(),
+            question_type=question_in.question_type,
+            points=question_in.points,
+            quiz_id=quiz.id
+        )
+        db.add(question)
+        db.commit()
+        db.refresh(question)
+        for opt in question_in.options:
+            if not opt.text or not opt.text.strip():
+                raise HTTPException(status_code=400, detail="Şık metni (option.text) boş olamaz!")
+            option = Option(
+                text=opt.text.strip(),
+                is_correct=opt.is_correct,
+                question_id=question.id
+            )
+            db.add(option)
+        db.commit()
+    db.refresh(quiz)
     return quiz
 
 @router.get("/", response_model=List[QuizResponse])
@@ -45,7 +73,13 @@ def read_quizzes(
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
-    Quizleri getir
+    Quizleri getir. (Öğretmen için sadece kendi oluşturduğu quizler gelir)
+    Android uygulamasında bu endpoint ile quizler listelenmeli. Kullanıcı birine tıklayınca aşağıdaki detaylı sonuç endpointine istek atılmalı:
+    
+    GET /api/v1/quizzes/{quiz_id}/detailed-results
+    Authorization: Bearer <token>
+    
+    Böylece istenen quizin detaylı sonucu alınır.
     """
     if current_user.role == UserRole.TEACHER:
         quizzes = get_quizzes(db, teacher_id=current_user.id, skip=skip, limit=limit)
@@ -241,8 +275,11 @@ def add_question_to_quiz(
         raise HTTPException(status_code=403, detail="Yeterli izniniz yok")
     if len(question_in.options) != 5:
         raise HTTPException(status_code=400, detail="Her soru için tam olarak 5 seçenek girilmelidir.")
+    # Soru metni boşsa hata ver
+    if not question_in.text or not question_in.text.strip():
+        raise HTTPException(status_code=400, detail="Soru metni (text) boş olamaz!")
     question = Question(
-        text=question_in.text,
+        text=question_in.text.strip(),
         question_type=question_in.question_type,
         points=question_in.points,
         quiz_id=quiz_id
@@ -252,8 +289,10 @@ def add_question_to_quiz(
     db.refresh(question)
     # Gelen optionsları ekle
     for opt in question_in.options:
+        if not opt.text or not opt.text.strip():
+            raise HTTPException(status_code=400, detail="Şık metni (option.text) boş olamaz!")
         option = Option(
-            text=opt.text,
+            text=opt.text.strip(),
             is_correct=opt.is_correct,
             question_id=question.id
         )
@@ -281,20 +320,40 @@ def submit_quiz(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
+    from app.db.models.student_response import StudentResponse
+    from app.db.models.student_answer import StudentAnswer
     quiz = get_quiz(db, quiz_id)
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz bulunamadı")
     correct = 0
     wrong = 0
+    # 1. StudentResponse oluştur
+    db_response = StudentResponse(
+        quiz_id=quiz_id,
+        student_id=current_user.id
+    )
+    db.add(db_response)
+    db.flush()  # id oluşsun diye
+    # 2. StudentAnswer kayıtlarını oluştur
     for answer in req.answers:
         question = next((q for q in quiz.questions if q.id == answer.question_id), None)
-        if question and question.options[answer.selected_option].is_correct:
+        selected_option_obj = next((opt for opt in question.options if opt.id == answer.selected_option), None) if question else None
+        is_correct = selected_option_obj.is_correct if selected_option_obj else False
+        if is_correct:
             correct += 1
         else:
             wrong += 1
+        db_answer = StudentAnswer(
+            question_id=answer.question_id,
+            selected_option_id=answer.selected_option,
+            is_correct=is_correct,
+            response_id=db_response.id
+        )
+        db.add(db_answer)
+    db.flush()
     score = int((correct / len(quiz.questions)) * 100) if quiz.questions else 0
-
-    # Score kaydı oluştur
+    db_response.total_score = score
+    # 3. Score kaydı oluştur
     if current_user.role == UserRole.STUDENT:
         score_obj = ScoreCreate(
             student_id=current_user.id,
@@ -304,7 +363,8 @@ def submit_quiz(
             wrong=wrong
         )
         create_score(db, score_obj, student_id=current_user.id, quiz_id=quiz_id)
-
+    db.commit()
+    db.refresh(db_response)
     return QuizSubmitResult(correct=correct, wrong=wrong, score=score)
 
 @router.get("/{quiz_id}/results", response_model=List[StudentQuizResult])
@@ -318,4 +378,7 @@ def quiz_results(
         raise HTTPException(status_code=404, detail="Quiz bulunamadı")
     if current_user.role != UserRole.TEACHER or quiz.teacher_id != current_user.id:
         raise HTTPException(status_code=403, detail="Yetkiniz yok")
-    return get_quiz_results(db, quiz_id)
+    return get_quiz_detailed_results(db, quiz_id)
+
+from app.crud.score import get_quiz_detailed_results
+from app.schemas.quiz_result import StudentQuizResult

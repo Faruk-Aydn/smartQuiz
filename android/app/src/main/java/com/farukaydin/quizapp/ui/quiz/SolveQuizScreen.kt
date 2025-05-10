@@ -119,6 +119,7 @@ fun SolveQuizScreen(
             Spacer(modifier = Modifier.height(16.dp))
             questions.forEach { question ->
                 Text(question.text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                // This will display all options (now 5) dynamically:
                 question.options.forEachIndexed { idx, option ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
@@ -131,7 +132,8 @@ fun SolveQuizScreen(
                         )
                         Text(option.text, color = MaterialTheme.colorScheme.onSurface)
                     }
-                }
+                } // End dynamic option rendering
+
                 Spacer(modifier = Modifier.height(8.dp))
             }
             if (errorMessage != null) {
@@ -143,7 +145,7 @@ fun SolveQuizScreen(
                     val answerList = questions.map { q ->
                         AnswerSubmit(
                             question_id = q.id,
-                            selected_option = answers[q.id] ?: 0
+                            selected_option = q.options[answers[q.id] ?: 0].id
                         )
                     }
                     coroutineScope.launch {

@@ -1,5 +1,6 @@
 package com.farukaydin.quizapp.ui.quiz
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,12 @@ import com.farukaydin.quizapp.data.models.QuizResponse
 import com.farukaydin.quizapp.data.models.Question
 import android.util.Base64
 import android.graphics.BitmapFactory
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun QuizDetailScreen(
@@ -113,12 +120,76 @@ fun QuizDetailScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        question.options.forEachIndexed { index, option ->
+                        // Doğru şık seçimi için state
+                        val context = LocalContext.current
+                        val correctOptionId = rememberSaveable(question.id) { mutableStateOf(question.options.find { it.isCorrect }?.id ?: question.options.first().id) }
+                        val isSaving = remember { mutableStateOf(false) }
+                        val saveResult = remember { mutableStateOf<String?>(null) }
+
+                        question.options.forEach { option ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
+                            ) {
+                                RadioButton(
+                                    selected = correctOptionId.value == option.id,
+                                    onClick = { correctOptionId.value = option.id },
+                                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                                )
+                                Text(
+                                    text = option.text,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Button(
+                            onClick = {
+                                isSaving.value = true
+                                saveResult.value = null
+                                val sharedPreferences = context.getSharedPreferences("quiz_prefs", Context.MODE_PRIVATE)
+                                val token = sharedPreferences.getString("token", null)
+                                if (token != null) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        try {
+                                            val response = com.farukaydin.quizapp.data.api.RetrofitClient.apiService.setCorrectOption(
+                                                question.id,
+                                                mapOf("option_id" to correctOptionId.value!!),
+                                                "Bearer $token"
+                                            )
+                                            withContext(Dispatchers.Main) {
+                                                isSaving.value = false
+                                                if (response.isSuccessful) {
+                                                    saveResult.value = "Başarıyla kaydedildi"
+                                                } else {
+                                                    saveResult.value = "Hata: ${'$'}{response.code()}"
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            withContext(Dispatchers.Main) {
+                                                isSaving.value = false
+                                                saveResult.value = "Sunucu hatası: ${'$'}{e.localizedMessage}" 
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    isSaving.value = false
+                                    saveResult.value = "Oturum bulunamadı."
+                                }
+                            },
+                            enabled = !isSaving.value,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text("Doğru Şıkkı Kaydet", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
+                        }
+                        if (saveResult.value != null) {
                             Text(
-                                text = "${index + 1}. ${option.text}",
-                                modifier = Modifier.padding(vertical = 2.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = saveResult.value!!,
+                                color = if (saveResult.value == "Başarıyla kaydedildi") Color.Green else Color.Red,
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                         }
                     }

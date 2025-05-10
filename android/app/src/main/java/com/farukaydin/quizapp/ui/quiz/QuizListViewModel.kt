@@ -24,6 +24,12 @@ data class QuizResultsState(
     val error: String? = null
 )
 
+data class QuizDetailedResultState(
+    val result: QuizDetailedResult? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 class QuizListViewModel(application: Application) : AndroidViewModel(application) {
     private val quizRepository = QuizRepository(RetrofitClient.apiService)
     private val _uiState = MutableStateFlow(QuizListUiState(isLoading = true))
@@ -34,6 +40,9 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
 
     private val _quizResultsState = MutableStateFlow(QuizResultsState())
     val quizResultsState: StateFlow<QuizResultsState> = _quizResultsState.asStateFlow()
+
+    private val _quizDetailedResultState = MutableStateFlow(QuizDetailedResultState())
+    val quizDetailedResultState: StateFlow<QuizDetailedResultState> = _quizDetailedResultState.asStateFlow()
 
     private val sharedPrefs = application.getSharedPreferences("quiz_app_prefs", Application.MODE_PRIVATE)
     private val token = sharedPrefs.getString("access_token", null)
@@ -134,6 +143,24 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
                 }
             } catch (e: Exception) {
                 _quizResultsState.value = QuizResultsState(error = "Hata: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun fetchQuizDetailedResults(quizId: Int) {
+        viewModelScope.launch {
+            _quizDetailedResultState.value = QuizDetailedResultState(isLoading = true)
+            try {
+                if (token != null) {
+                    val response = quizRepository.getQuizDetailedResults(quizId, token)
+                    if (response.isSuccessful && response.body() != null) {
+                        _quizDetailedResultState.value = QuizDetailedResultState(result = response.body(), isLoading = false)
+                    } else {
+                        _quizDetailedResultState.value = QuizDetailedResultState(error = "Detaylı sonuç alınamadı: ${response.message()}", isLoading = false)
+                    }
+                }
+            } catch (e: Exception) {
+                _quizDetailedResultState.value = QuizDetailedResultState(error = "Hata: ${e.localizedMessage}", isLoading = false)
             }
         }
     }

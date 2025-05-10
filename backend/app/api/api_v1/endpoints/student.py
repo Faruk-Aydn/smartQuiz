@@ -29,7 +29,6 @@ def get_available_quizzes(
             detail="Sadece öğrenciler bu endpoint'i kullanabilir"
         )
     
-    # Aktif quizleri getir
     quizzes = db.query(Quiz).filter(Quiz.is_active == True).offset(skip).limit(limit).all()
     return quizzes
 
@@ -48,7 +47,6 @@ def submit_quiz(
             detail="Sadece öğrenciler quiz yanıtlayabilir"
         )
     
-    # Yanıtı oluştur
     db_response = StudentResponse(
         quiz_id=response_in.quiz_id,
         student_id=current_user.id
@@ -56,7 +54,6 @@ def submit_quiz(
     db.add(db_response)
     db.flush()
     
-    # Cevapları ekle
     for answer_in in response_in.answers:
         db_answer = StudentAnswer(
             question_id=answer_in.question_id,
@@ -67,8 +64,6 @@ def submit_quiz(
         db.add(db_answer)
     
     db.flush()
-    
-    # Puanlamayı yap
     calculate_score(db, db_response.id)
     db.commit()
     db.refresh(db_response)

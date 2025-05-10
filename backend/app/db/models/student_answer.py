@@ -6,6 +6,7 @@ from app.db.base_class import Base
 class StudentAnswer(Base):
     id = Column(Integer, primary_key=True, index=True)
     selected_option_id = Column(Integer, ForeignKey("option.id"), nullable=True)
+    selected_option = relationship("Option", foreign_keys=[selected_option_id])
     text_answer = Column(Text, nullable=True)  # Kısa cevap soruları için
     is_correct = Column(Boolean, default=False)
     points_earned = Column(Integer, default=0)
