@@ -457,7 +457,12 @@ fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel, na
                 quiz = quizDetailState.quiz,
                 questions = quizDetailState.questions,
                 apiService = RetrofitClient.apiService,
-                onHome = { navController.navigate("studentHome") }
+                onHome = {
+                    navController.navigate("studentHome") {
+                        popUpTo(0)
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 

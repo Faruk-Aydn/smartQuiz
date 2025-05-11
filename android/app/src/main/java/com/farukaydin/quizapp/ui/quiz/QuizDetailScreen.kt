@@ -61,6 +61,7 @@ fun QuizDetailScreen(
                 val base64Image = qrCodeString.substringAfter("base64,")
                 val imageBytes = remember(qrCodeString) { Base64.decode(base64Image, Base64.DEFAULT) }
                 val bitmap = remember(qrCodeString) { BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size) }
+                val context = LocalContext.current
                 bitmap?.let {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -70,6 +71,10 @@ fun QuizDetailScreen(
                             .padding(vertical = 12.dp)
                             .background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { QrShareUtils.shareQrImage(context, it) }) {
+                        Text(text = "QR Kodunu Paylaş")
+                    }
                 }
             }
             // Quiz kodunu göster

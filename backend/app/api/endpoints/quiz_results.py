@@ -199,5 +199,11 @@ def get_quiz_detailed_results(
         "totalStudents": total_students,
         "mostWrongQuestions": wrong_stats
     }
+    # Sonuçları cache'e yaz (invalidate_quiz_cache ile yeni veri gelince otomatik silinir)
+    if redis_client:
+        try:
+            redis_client.setex(cache_key, 60, json.dumps(result))  # 60 saniye cache örneği
+        except Exception as e:
+            print("Redis cache yazma hatası:", e)
     return result
 

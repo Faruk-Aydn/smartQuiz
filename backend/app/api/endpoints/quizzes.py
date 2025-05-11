@@ -14,6 +14,25 @@ router = APIRouter()
 from app.api.endpoints.quiz_results import router as quiz_results_router
 router.include_router(quiz_results_router)
 
+from app.services.qr_service import generate_qr_code
+
+@router.get("/{quiz_id}/qr")
+def get_quiz_qr(
+    quiz_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    """
+    İlgili quiz için QR kodu (base64 PNG) döner. Sadece öğretmenler erişebilir.
+    """
+    quiz = get_quiz(db, quiz_id=quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz bulunamadı")
+    if current_user.role != UserRole.TEACHER:
+        raise HTTPException(status_code=403, detail="Sadece öğretmenler erişebilir")
+    qr_base64 = generate_qr_code(quiz_id)
+    return {"qr_code": qr_base64}
+
 @router.post("/", response_model=QuizResponse)
 def create_new_quiz(
     quiz_in: QuizCreate,
