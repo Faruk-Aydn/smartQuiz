@@ -88,10 +88,12 @@ interface ApiService {
     ): Response<List<StudentQuizResult>>
 
     @GET("quizzes/{quiz_id}/detailed-results")
-    suspend fun getQuizDetailedResults(
-        @Path("quiz_id") quizId: Int,
-        @Header("Authorization") token: String
-    ): Response<QuizDetailedResult>
+suspend fun getQuizDetailedResults(
+    @Path("quiz_id") quizId: Int,
+    @Header("Authorization") token: String,
+    @Query("limit") limit: Int,
+    @Query("offset") offset: Int
+): Response<QuizDetailedResult>
 
     @GET("student/results/{quiz_id}")
     suspend fun getStudentResults(

@@ -9,15 +9,15 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     // Emülatör için localhost: 10.0.2.2
     // Gerçek cihaz için bilgisayarınızın IP adresini kullanın
-    private const val BASE_URL = "http://10.0.2.2:8000/api/v1/"
+    private const val BASE_URL = "https://backend-40v7.onrender.com/api/v1/"
     
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
-        .connectTimeout(10, TimeUnit.SECONDS) // Timeout süresini 10 saniyeye düşürdük
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(10, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS) // Timeout süresini 60 saniyeye çıkardık
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     private val retrofit = Retrofit.Builder()

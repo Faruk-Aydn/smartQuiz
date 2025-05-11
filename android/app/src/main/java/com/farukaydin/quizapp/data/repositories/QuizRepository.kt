@@ -58,8 +58,8 @@ class QuizRepository(private val apiService: ApiService) {
     suspend fun getQuizResults(quizId: Int, token: String) =
         apiService.getQuizResults(quizId, "Bearer $token")
 
-    suspend fun getQuizDetailedResults(quizId: Int, token: String) =
-        apiService.getQuizDetailedResults(quizId, "Bearer $token")
+    suspend fun getQuizDetailedResults(quizId: Int, token: String, limit: Int, offset: Int) =
+        apiService.getQuizDetailedResults(quizId, "Bearer $token", limit, offset)
 
     suspend fun addQuestionToQuiz(quizId: Int, question: QuestionCreate, token: String): Response<Question> {
         return apiService.addQuestionToQuiz(quizId, question, "Bearer $token")

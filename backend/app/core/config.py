@@ -23,34 +23,24 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    # PostgreSQL veritabanı bağlantı bilgileri
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "12345"
-    POSTGRES_DB: str = "akilli_quiz"
+    # Supabase Pooler bağlantı bilgileri
+    POSTGRES_SERVER: str = "aws-0-us-east-2.pooler.supabase.com"
+    POSTGRES_USER: str = "postgres.umvwlcofbcrqpititqxb"
+    POSTGRES_PASSWORD: str = "Ef123456789"  # Kendi Supabase şifreni yaz
+    POSTGRES_DB: str = "postgres"
+    POSTGRES_PORT: int = 6543
     SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
-        
         username = values.get("POSTGRES_USER")
         password = values.get("POSTGRES_PASSWORD")
         host = values.get("POSTGRES_SERVER")
         db = values.get("POSTGRES_DB")
-        
-        # Direct string formatting to avoid PostgresDsn conversion issues
-        return f"postgresql://{username}:{password}@{host}/{db}"
-        
-        # This code is unreachable and causing issues
-        # return str(PostgresDsn.build(
-        #     scheme="postgresql",
-        #     username=user,
-        #     password=password,
-        #     host=host,
-        #     path=f"/{db}"
-        # ))
+        port = values.get("POSTGRES_PORT", 6543)
+        return f"postgresql://{username}:{password}@{host}:{port}/{db}"
 
     # AI model ayarları
     AI_PROVIDER: str = "gemini"  # "openai" veya "gemini"

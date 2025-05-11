@@ -51,10 +51,19 @@ import com.farukaydin.quizapp.ui.quiz.SolveQuizScreen
 import com.farukaydin.quizapp.data.models.OptionResponse
 import com.farukaydin.quizapp.data.api.RetrofitClient
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import com.farukaydin.quizapp.ui.quiz.TeacherResultsScreen
 import com.farukaydin.quizapp.ui.quiz.TeacherHomeViewModel
@@ -62,6 +71,7 @@ import com.farukaydin.quizapp.ui.quiz.TeacherDetailedResultsScreen
 import com.farukaydin.quizapp.ui.profile.ProfileScreen
 import com.farukaydin.quizapp.ui.profile.ProfileViewModel
 import com.farukaydin.quizapp.data.repositories.UserRepository
+import com.farukaydin.quizapp.ui.quiz.StudentHomeScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,6 +80,10 @@ class MainActivity : ComponentActivity() {
             .getString("access_token", null) ?: ""
         setContent {
             val navController = rememberNavController()
+            val context = LocalContext.current
+            val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+            val savedToken = sharedPrefs.getString("access_token", null)
+            val savedRole = sharedPrefs.getString("user_role", null)
 
             // ZXing QR kod okuma launcher
             val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
@@ -83,9 +97,47 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            NavHost(navController, startDestination = "login") {
-                // region Suppress unchecked cast warnings for ViewModelProvider.Factory
-                @Suppress("UNCHECKED_CAST")
+            // Otomatik yönlendirme
+            LaunchedEffect(savedToken, savedRole) {
+                if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty()) {
+                    if (savedRole == "student") {
+                        navController.navigate("studentHome") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } else if (savedRole == "teacher") {
+                        navController.navigate("teacherHome") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                }
+            }
+
+            val startDest = if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty()) {
+                if (savedRole == "student") "studentHome"
+                else if (savedRole == "teacher") "teacherHome"
+                else "login"
+            } else {
+                "login"
+            }
+
+            NavHost(navController, startDestination = startDest) {
+                // Öğrenci quiz çözüp sonucu gördükten sonra ana sayfaya dönebilsin diye SolveQuizScreen için route ekleniyor.
+                composable("solveQuiz/{quizId}") { backStackEntry ->
+                    val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull()
+                    val quizListViewModel: QuizListViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return QuizListViewModel(application) as T
+                            }
+                        }
+                    )
+                    if (quizId != null) {
+                        QuizDetailScreenWithViewModel(quizId = quizId, viewModel = quizListViewModel, navController = navController)
+                    } else {
+                        Text("Quiz ID geçersiz")
+                    }
+                }
                 composable("login") {
                     val loginViewModel: LoginViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
@@ -95,12 +147,33 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
-                    LoginScreen(
-                        onStudent = { navController.navigate("studentHome") },
-                        onTeacher = { navController.navigate("teacherHome") },
-                        onRegisterClick = { navController.navigate("register") },
-                        viewModel = loginViewModel
-                    )
+                    // Eğer token varsa, login ekranını göstermeden ana ekrana yönlendir
+                    val context = LocalContext.current
+                    val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+                    val savedToken = sharedPrefs.getString("access_token", null)
+                    val savedRole = sharedPrefs.getString("user_role", null)
+                    LaunchedEffect(savedToken, savedRole) {
+                        if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty()) {
+                            if (savedRole == "student") {
+                                navController.navigate("studentHome") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else if (savedRole == "teacher") {
+                                navController.navigate("teacherHome") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                        }
+                    }
+                    // Eğer token yoksa login ekranı göster
+                    if (savedToken.isNullOrEmpty() || savedRole.isNullOrEmpty()) {
+                        LoginScreen(
+                            onStudent = { navController.navigate("studentHome") },
+                            onTeacher = { navController.navigate("teacherHome") },
+                            onRegisterClick = { navController.navigate("register") },
+                            viewModel = loginViewModel
+                        )
+                    }
                 }
                 composable("register") {
                     RegisterScreen(onRegisterSuccess = { navController.popBackStack("login", inclusive = false) })
@@ -149,7 +222,14 @@ class MainActivity : ComponentActivity() {
                         onCreateQuiz = { navController.navigate("createQuiz") },
                         onQuizList = { navController.navigate("quizList") },
                         onResults = { navController.navigate("results") },
-                        onDetailedResults = { quizId -> navController.navigate("teacherDetailedResults/$quizId") }
+                        onDetailedResults = { quizId -> navController.navigate("teacherDetailedResults/$quizId") },
+                        onLogoutClick = {
+                            val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+                            sharedPrefs.edit().clear().apply()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
                     )
                 }
                 composable("teacherDetailedResults/{quizId}") { backStackEntry ->
@@ -164,10 +244,10 @@ class MainActivity : ComponentActivity() {
                     )
                     if (quizId != null) {
                         TeacherDetailedResultsScreen(
-    quizId = quizId,
-    viewModel = quizListViewModel,
-    onBack = { navController.popBackStack() }
-)
+                            quizId = quizId,
+                            viewModel = quizListViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
                     } else {
                         Text("Quiz ID bulunamadı")
                     }
@@ -187,7 +267,14 @@ class MainActivity : ComponentActivity() {
                         userName = user?.username ?: "",
                         onProfileClick = { navController.navigate("profile") },
                         onJoinQuizClick = { navController.navigate("joinQuiz") },
-                        onResultsClick = { navController.navigate("studentResults") }
+                        onResultsClick = { navController.navigate("studentResults") },
+                        onLogoutClick = {
+                            val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+                            sharedPrefs.edit().clear().apply()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
                     )
                 }
                 composable("createQuiz") {
@@ -198,8 +285,8 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("results") {
                     TeacherResultsScreen(
-    onQuizClick = { quizId -> navController.navigate("teacherDetailedResults/$quizId") }
-)
+                        onQuizClick = { quizId -> navController.navigate("teacherDetailedResults/$quizId") }
+                    )
                 }
                 composable("joinQuiz") {
                     JoinQuizScreen(
@@ -259,94 +346,89 @@ class MainActivity : ComponentActivity() {
                         com.farukaydin.quizapp.ui.StudentResultScreen(quizResultDetail = quizResultDetail)
                     }
                 }
-                // endregion
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen() {
-    Text("Hoşgeldin!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen()
-}
-
-@Composable
 fun StudentHomeScreen(
-    userName: String,
+    userName: String?,
     onProfileClick: () -> Unit,
     onJoinQuizClick: () -> Unit,
-    onResultsClick: () -> Unit
+    onResultsClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Spacer(modifier = Modifier.height(32.dp))
+        // Profil ikonu ve kullanıcı adı
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+                .size(96.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .clickable { onProfileClick() },
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Hoşgeldin $userName",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp
-                ),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 32.dp)
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Profil",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(80.dp)
             )
-            Button(
-                onClick = onProfileClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                elevation = ButtonDefaults.buttonElevation(6.dp)
-            ) {
-                Text("Profilim", fontWeight = FontWeight.Medium, fontSize = 18.sp)
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-            Button(
-                onClick = onJoinQuizClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                elevation = ButtonDefaults.buttonElevation(6.dp)
-            ) {
-                Text("Quiz'e Katıl", fontWeight = FontWeight.Medium, fontSize = 18.sp)
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-            Button(
-                onClick = onResultsClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                elevation = ButtonDefaults.buttonElevation(6.dp)
-            ) {
-                Text("Sonuçlarım", fontWeight = FontWeight.Medium, fontSize = 18.sp)
-            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = userName ?: "Kullanıcı",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = onProfileClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Profilim")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onJoinQuizClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Quiz'e Katıl")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onResultsClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text("Sonuçlarım")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
+            Text("Çıkış Yap", color = MaterialTheme.colorScheme.onError)
         }
     }
 }
@@ -365,17 +447,20 @@ fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel, na
         quizDetailState.isLoading -> {
             CircularProgressIndicator(modifier = Modifier.fillMaxSize())
         }
+
         quizDetailState.error != null -> {
             Text(text = quizDetailState.error, color = MaterialTheme.colorScheme.error)
         }
+
         quizDetailState.quiz != null -> {
             SolveQuizScreen(
                 quiz = quizDetailState.quiz,
                 questions = quizDetailState.questions,
                 apiService = RetrofitClient.apiService,
-                onHome = { navController.navigate("joinQuiz") }
+                onHome = { navController.navigate("studentHome") }
             )
         }
+
         else -> {
             Text("Yükleniyor...")
         }

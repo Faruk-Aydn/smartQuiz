@@ -10,5 +10,7 @@ alembic
 python-jose[cryptography]
 pydantic-settings
 qrcode
+Pillow
 requests
 email-validator
+redis>=4.5.0

@@ -7,6 +7,7 @@ from app.db.models.user import User, UserRole
 from app.schemas.response import StudentResponseCreate, StudentResponseWithAnswers
 from app.db.models.student_response import StudentResponse
 from app.services.scoring_service import calculate_score
+from app.api.endpoints.quiz_results import invalidate_quiz_cache
 
 router = APIRouter()
 
@@ -51,6 +52,8 @@ def submit_quiz_response(
     
     db.commit()
     db.refresh(db_response)
+    # Quiz sonucu değişti, cache'i temizle
+    invalidate_quiz_cache(response_in.quiz_id)
     return db_response
 
 @router.get("/my-responses", response_model=List[StudentResponseWithAnswers])

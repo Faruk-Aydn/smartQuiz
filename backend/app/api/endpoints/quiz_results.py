@@ -2,6 +2,22 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict
+import redis
+import json
+import os
+from fastapi.responses import JSONResponse
+
+# Redis bağlantısı (Upstash veya başka bir servis için environment variable'dan alınır)
+REDIS_URL = os.getenv("REDIS_URL")
+print(f"[DEBUG] REDIS_URL: {REDIS_URL}")  # DEBUG: Render logunda hangi URL kullanılıyor göreceğiz
+redis_client = None
+if REDIS_URL:
+    try:
+        redis_client = redis.from_url(REDIS_URL)
+        redis_client.ping()
+    except Exception as e:
+        print("Redis bağlantı hatası:", e)
+        redis_client = None
 
 from app.api import deps
 from app.db.models.user import User, UserRole
@@ -12,14 +28,45 @@ from app.db.models.student_response import StudentResponse
 from app.db.models.student_answer import StudentAnswer
 from app.db.models.score import Score
 
+
 router = APIRouter()
+
+from fastapi import Query
+
+def invalidate_quiz_cache(quiz_id: int):
+    """Quiz çözülünce ilgili cache anahtarlarını silmek için yardımcı fonksiyon."""
+    if not redis_client:
+        return
+    pattern = f"quiz_detailed_results:{quiz_id}:*"
+    try:
+        for key in redis_client.scan_iter(pattern):
+            redis_client.delete(key)
+    except Exception as e:
+        print("Redis cache silme hatası:", e)
 
 @router.get("/{quiz_id}/detailed-results")
 def get_quiz_detailed_results(
     quiz_id: int,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
+    cache_key = f"quiz_detailed_results:{quiz_id}:limit:{limit}:offset:{offset}"
+    cached = None
+    if redis_client:
+        try:
+            cached = redis_client.get(cache_key)
+        except Exception as e:
+            print("Redis cache okuma hatası:", e)
+            cached = None
+    if cached:
+        try:
+            return JSONResponse(content=json.loads(cached))
+        except Exception as e:
+            print("Redis cache decode hatası:", e)
+            pass
+
     quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz bulunamadı")
@@ -31,12 +78,14 @@ def get_quiz_detailed_results(
     student_responses = db.query(StudentResponse).filter(StudentResponse.quiz_id == quiz_id).all()
     participant_count = len(student_responses)
 
-    # Öğrenci skorları
-    scores = db.query(Score).filter(Score.quiz_id == quiz_id).all()
-    if scores:
-        average_score = sum(s.score for s in scores) / len(scores)
-        max_score = max(s.score for s in scores)
-        min_score = min(s.score for s in scores)
+    # Öğrenci skorları (pagination için)
+    all_scores = db.query(Score).filter(Score.quiz_id == quiz_id)
+    total_students = all_scores.count()
+    scores = all_scores.offset(offset).limit(limit).all()
+    if total_students > 0:
+        average_score = sum(s.score for s in all_scores) / total_students
+        max_score = max(s.score for s in all_scores)
+        min_score = min(s.score for s in all_scores)
     else:
         average_score = max_score = min_score = 0
 
@@ -138,7 +187,7 @@ def get_quiz_detailed_results(
          .order_by(func.count(StudentAnswer.id).desc()).limit(3)
     ]
 
-    return {
+    result = {
         "quizId": quiz.id,
         "title": quiz.title,
         "participantCount": participant_count,
@@ -147,5 +196,8 @@ def get_quiz_detailed_results(
         "minScore": min_score,
         "questions": question_stats,
         "students": student_details,
+        "totalStudents": total_students,
         "mostWrongQuestions": wrong_stats
     }
+    return result
+

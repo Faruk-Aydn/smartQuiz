@@ -24,7 +24,8 @@ fun TeacherHomeScreen(
     onCreateQuiz: () -> Unit,
     onQuizList: () -> Unit,
     onResults: () -> Unit,
-    onDetailedResults: (quizId: Int) -> Unit
+    onDetailedResults: (quizId: Int) -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -107,6 +108,21 @@ fun TeacherHomeScreen(
                 Text("Sonuçlar", fontWeight = FontWeight.Medium, fontSize = 18.sp)
             }
 
+            Spacer(modifier = Modifier.height(18.dp))
+            Button(
+                onClick = onLogoutClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                ),
+                elevation = ButtonDefaults.buttonElevation(6.dp)
+            ) {
+                Text("Çıkış Yap", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+            }
         }
     }
 }

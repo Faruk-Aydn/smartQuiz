@@ -5,6 +5,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -35,6 +37,16 @@ fun TeacherDetailedResultsScreen(
     val state by viewModel.quizDetailedResultState.collectAsState()
 
     LaunchedEffect(quizId) { viewModel.fetchQuizDetailedResults(quizId) }
+    val listState = rememberLazyListState()
+    val shouldLoadMore = remember(state.students, state.hasMore, listState) {
+        val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+        state.hasMore && lastVisible >= state.students.size - 5 && !state.isLoadingMore && !state.isLoading
+    }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) {
+            viewModel.fetchQuizDetailedResults(quizId, isLoadMore = true)
+        }
+    }
 
     if (state.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -87,8 +99,22 @@ fun TeacherDetailedResultsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 SectionTitle("Öğrenci Sonuçları")
             }
-            items(result.students) { student ->
+            items(state.students) { student ->
                 StudentCard(student)
+            }
+            if (state.isLoadingMore) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(Modifier.size(32.dp))
+                    }
+                }
+            }
+            if (!state.hasMore && state.students.isNotEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text("Tüm öğrenciler yüklendi", color = Color.Gray)
+                    }
+                }
             }
         }
     }

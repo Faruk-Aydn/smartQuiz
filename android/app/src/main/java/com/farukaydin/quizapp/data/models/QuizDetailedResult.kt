@@ -9,7 +9,8 @@ data class QuizDetailedResult(
     val minScore: Int,
     val questions: List<QuestionStat>,
     val students: List<StudentDetail>,
-    val mostWrongQuestions: List<WrongQuestion>
+    val mostWrongQuestions: List<WrongQuestion>,
+    val totalStudents: Int
 )
 
 data class QuestionStat(

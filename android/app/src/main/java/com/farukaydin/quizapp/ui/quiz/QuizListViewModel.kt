@@ -26,8 +26,11 @@ data class QuizResultsState(
 
 data class QuizDetailedResultState(
     val result: QuizDetailedResult? = null,
+    val students: List<StudentDetail> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val hasMore: Boolean = true,
+    val isLoadingMore: Boolean = false
 )
 
 class QuizListViewModel(application: Application) : AndroidViewModel(application) {
@@ -147,23 +150,43 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun fetchQuizDetailedResults(quizId: Int) {
-        viewModelScope.launch {
+    private var currentOffset = 0
+private val pageSize = 20
+
+fun fetchQuizDetailedResults(quizId: Int, isLoadMore: Boolean = false) {
+    viewModelScope.launch {
+        val currentState = _quizDetailedResultState.value
+        if (isLoadMore) {
+            _quizDetailedResultState.value = currentState.copy(isLoadingMore = true)
+        } else {
             _quizDetailedResultState.value = QuizDetailedResultState(isLoading = true)
-            try {
-                if (token != null) {
-                    val response = quizRepository.getQuizDetailedResults(quizId, token)
-                    if (response.isSuccessful && response.body() != null) {
-                        _quizDetailedResultState.value = QuizDetailedResultState(result = response.body(), isLoading = false)
-                    } else {
-                        _quizDetailedResultState.value = QuizDetailedResultState(error = "Detaylı sonuç alınamadı: ${response.message()}", isLoading = false)
-                    }
+            currentOffset = 0
+        }
+        try {
+            if (token != null) {
+                val response = quizRepository.getQuizDetailedResults(quizId, token, pageSize, currentOffset)
+                if (response.isSuccessful && response.body() != null) {
+                    val result = response.body()!!
+                    val newStudents = if (isLoadMore) currentState.students + result.students else result.students
+                    val hasMore = newStudents.size < result.totalStudents
+                    _quizDetailedResultState.value = QuizDetailedResultState(
+                        result = result.copy(students = newStudents),
+                        students = newStudents,
+                        isLoading = false,
+                        hasMore = hasMore,
+                        isLoadingMore = false
+                    )
+                    currentOffset = newStudents.size
+                } else {
+                    _quizDetailedResultState.value = currentState.copy(error = "Detaylı sonuç alınamadı: ${response.message()}", isLoading = false, isLoadingMore = false)
                 }
-            } catch (e: Exception) {
-                _quizDetailedResultState.value = QuizDetailedResultState(error = "Hata: ${e.localizedMessage}", isLoading = false)
             }
+        } catch (e: Exception) {
+            _quizDetailedResultState.value = currentState.copy(error = "Hata: ${e.localizedMessage}", isLoading = false, isLoadingMore = false)
         }
     }
+}
+
 
     fun deleteQuiz(quizId: Int) {
         viewModelScope.launch {
