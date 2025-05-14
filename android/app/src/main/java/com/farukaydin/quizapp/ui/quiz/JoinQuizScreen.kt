@@ -11,14 +11,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun JoinQuizScreen(
+    viewModel: QuizListViewModel = viewModel(),
     onJoinQuiz: (Int) -> Unit,
     onScanQr: () -> Unit
 ) {
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+
+    // Ekran ilk açıldığında çözülen quizleri çek
+    LaunchedEffect(Unit) {
+        viewModel.fetchSolvedQuizzes()
+    }
+    val solvedQuizzes by viewModel.solvedQuizzes.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,7 +68,11 @@ fun JoinQuizScreen(
             onClick = {
                 val codeInt = code.toIntOrNull()
                 if (codeInt != null) {
-                    onJoinQuiz(codeInt)
+                    if (solvedQuizzes.any { it.quiz_id == codeInt }) {
+                        error = "Bu quiz'i zaten tamamladınız. Tekrar katılamazsınız."
+                    } else {
+                        onJoinQuiz(codeInt)
+                    }
                 } else {
                     error = "Geçerli bir quiz kodu girin!"
                 }

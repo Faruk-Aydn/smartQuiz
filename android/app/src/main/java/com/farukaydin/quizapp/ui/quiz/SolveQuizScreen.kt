@@ -210,7 +210,12 @@ fun SolveQuizScreen(
                             result = res
                             onResult(res)
                         } catch (e: Exception) {
-                            errorMessage = "Cevaplar gönderilemedi: ${e.localizedMessage ?: "Bilinmeyen hata"}"
+                            val msg = e.localizedMessage ?: "Bilinmeyen hata"
+                            if (msg.contains("Bu quiz zaten çözülmüş")) {
+                                errorMessage = "Bu quiz daha önce çözüldü. Bir quiz sadece bir kez çözülebilir."
+                            } else {
+                                errorMessage = "Cevaplar gönderilemedi: $msg"
+                            }
                         }
                     }
                 },

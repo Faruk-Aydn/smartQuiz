@@ -34,6 +34,23 @@ data class QuizDetailedResultState(
 )
 
 class QuizListViewModel(application: Application) : AndroidViewModel(application) {
+    private val _solvedQuizzes = MutableStateFlow<List<SolvedQuizInfo>>(emptyList())
+    val solvedQuizzes: StateFlow<List<SolvedQuizInfo>> = _solvedQuizzes
+
+    fun fetchSolvedQuizzes() {
+        viewModelScope.launch {
+            if (token != null) {
+                val response = quizRepository.getSolvedQuizzes(token)
+                if (response.isSuccessful && response.body() != null) {
+                    _solvedQuizzes.value = response.body()!!
+                }
+            }
+        }
+    }
+
+    fun hasSolvedQuiz(quizId: Int): Boolean {
+        return _solvedQuizzes.value.any { it.quiz_id == quizId }
+    }
     private val quizRepository = QuizRepository(RetrofitClient.apiService)
     private val _uiState = MutableStateFlow(QuizListUiState(isLoading = true))
     val uiState: StateFlow<QuizListUiState> = _uiState

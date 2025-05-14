@@ -331,6 +331,13 @@ def submit_quiz(
         raise HTTPException(status_code=404, detail="Quiz bulunamadı")
     correct = 0
     wrong = 0
+    # Öğrenci bu quiz için daha önce çözüm yapmış mı kontrol et
+    existing_response = db.query(StudentResponse).filter(
+        StudentResponse.quiz_id == quiz_id,
+        StudentResponse.student_id == current_user.id
+    ).first()
+    if existing_response:
+        raise HTTPException(status_code=400, detail="Bu quiz zaten çözülmüş. Bir quiz sadece bir kez çözülebilir.")
     # 1. StudentResponse oluştur
     db_response = StudentResponse(
         quiz_id=quiz_id,
