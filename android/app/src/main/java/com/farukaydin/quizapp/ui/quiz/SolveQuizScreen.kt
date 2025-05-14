@@ -23,6 +23,10 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,12 +99,28 @@ fun SolveQuizScreen(
     onRetry: () -> Unit = {},
     onHome: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    // Lifecycle event dinleyici (güncel Compose yöntemi)
+
+    var quizKicked by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                quizKicked = true
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
     val answers = remember { mutableStateMapOf<Int, Int>() }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     var result by remember { mutableStateOf<QuizSubmitResult?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
+
 
     // Sayaç için state ve timer
     var timeLeft by remember { mutableStateOf((quiz.duration_minutes ?: 0) * 60) }
@@ -141,7 +161,19 @@ fun SolveQuizScreen(
         }
     }
 
-    if (result != null) {
+    if (quizKicked) {
+        // Quizden atıldı uyarısı ve ana ekrana yönlendirme
+        AlertDialog(
+            onDismissRequest = { onHome() },
+            title = { Text("Quiz Sonlandırıldı") },
+            text = { Text("Uygulama arka plana alındığı için quizden çıkarıldınız.") },
+            confirmButton = {
+                Button(onClick = { onHome() }) {
+                    Text("Ana Sayfa")
+                }
+            }
+        )
+    } else if (result != null) {
         QuizResultScreen(result = result!!, onRetry = {
             result = null
             answers.clear()
