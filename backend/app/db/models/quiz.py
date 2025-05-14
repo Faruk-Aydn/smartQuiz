@@ -13,6 +13,7 @@ class Quiz(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     is_active = Column(Boolean, default=True)
     qr_code = Column(String, nullable=True)  # QR kod URL'si veya değeri
+    duration_minutes = Column(Integer, nullable=True)  # Quiz süresi (dakika cinsinden)
     
     # İlişkiler
     teacher_id = Column(Integer, ForeignKey("user.id"))

@@ -206,12 +206,15 @@ def ai_generate_quiz(
     questions = ai_service.generate_quiz_questions(req.topic, req.difficulty, req.num_questions)
     return questions
 
+from typing import Optional
+
 class AIGenerateAndSaveQuizRequest(BaseModel):
     topic: str
     difficulty: str = "medium"
     num_questions: int = 5
     title: str
     description: str = ""
+    duration_minutes: Optional[int] = None
 
 @router.post("/ai-generate-and-save", response_model=QuizResponse)
 def ai_generate_and_save_quiz(
@@ -230,7 +233,8 @@ def ai_generate_and_save_quiz(
         title=req.title,
         description=req.description,
         subject=req.topic,
-        grade_level=""  # None yerine boş string
+        grade_level="",  # None yerine boş string
+        duration_minutes=req.duration_minutes
     )
     quiz = create_quiz(db=db, obj_in=quiz_in, teacher_id=current_user.id)
     # 2. AI ile soruları oluşturup kaydet

@@ -46,10 +46,11 @@ def create_new_quiz(
         )
     
     # Quiz oluştu
-    quiz = create_quiz(db, obj_in=quiz_in, teacher_id=current_user.id)
+    quiz = create_quiz(db, obj_in=quiz_in, teacher_id=current_user.id, duration_minutes=quiz_in.duration_minutes)
     db.commit()
     db.refresh(quiz)
 
+    # Quiz süresi (dakika cinsinden) quiz objesine kaydedildi
     # QuizCreate ile birlikte sorular ve şıklar geldiyse, ekle
     for question_in in quiz_in.questions:
         question = Question(

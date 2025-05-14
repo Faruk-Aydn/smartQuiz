@@ -31,13 +31,13 @@ class CreateQuizViewModel(application: Application) : AndroidViewModel(applicati
     var isLoading by mutableStateOf(false)
     var aiQuizSuccess by mutableStateOf(false)
 
-    fun aiGenerateAndSaveQuiz(topic: String, difficulty: String, numQuestions: Int, title: String, description: String, token: String) {
+    fun aiGenerateAndSaveQuiz(topic: String, difficulty: String, numQuestions: Int, title: String, description: String, durationMinutes: Int?, token: String) {
         isLoading = true
         error = null
         aiQuizSuccess = false
         viewModelScope.launch {
             try {
-                val response = quizRepository.aiGenerateAndSaveQuiz(topic, difficulty, numQuestions, title, description, token)
+                val response = quizRepository.aiGenerateAndSaveQuiz(topic, difficulty, numQuestions, title, description, durationMinutes, token)
                 if (response.isSuccessful && response.body() != null) {
                     aiQuizSuccess = true
                 } else {
@@ -122,6 +122,7 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
     var numQuestions by remember { mutableStateOf("5") }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var durationMinutes by remember { mutableStateOf("") }
     val isLoading = viewModel.isLoading
     val error = viewModel.error
     val aiQuizSuccess = viewModel.aiQuizSuccess
@@ -214,10 +215,25 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = durationMinutes,
+            onValueChange = { durationMinutes = it.filter { c -> c.isDigit() } },
+            label = { Text("Quiz Süresi (dakika)") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            ),
+            singleLine = true
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                viewModel.aiGenerateAndSaveQuiz(topic, difficulty, numQuestions.toIntOrNull() ?: 5, title, description, token)
+                viewModel.aiGenerateAndSaveQuiz(topic, difficulty, numQuestions.toIntOrNull() ?: 5, title, description, durationMinutes.toIntOrNull(), token)
             },
             enabled = !isLoading && topic.isNotBlank() && title.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -250,6 +266,7 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
     var description by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }
     var gradeLevel by remember { mutableStateOf("") }
+    var durationMinutes by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var success by remember { mutableStateOf(false) }
@@ -320,6 +337,21 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = durationMinutes,
+            onValueChange = { durationMinutes = it.filter { c -> c.isDigit() } },
+            label = { Text("Quiz Süresi (dakika)") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            ),
+            singleLine = true
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
@@ -336,7 +368,7 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
                             isLoading = false
                             return@launch
                         }
-                        val response = repo.createQuiz(title, description, subject, gradeLevel, token)
+                        val response = repo.createQuiz(title, description, subject, gradeLevel, durationMinutes.toIntOrNull(), token)
                         if (response.isSuccessful && response.body() != null) {
                             success = true
                             onQuizCreated()

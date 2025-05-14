@@ -5,5 +5,6 @@ data class QuizResponse(
     val title: String,
     val description: String,
     val qr_code: String?,
+    val duration_minutes: Int?,
     val questions: List<Question> = emptyList()
-) 
+)

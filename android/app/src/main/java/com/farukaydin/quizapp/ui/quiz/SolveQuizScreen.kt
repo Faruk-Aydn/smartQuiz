@@ -102,6 +102,45 @@ fun SolveQuizScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
+    // Sayaç için state ve timer
+    var timeLeft by remember { mutableStateOf((quiz.duration_minutes ?: 0) * 60) }
+    val isTimerActive = remember { mutableStateOf((quiz.duration_minutes ?: 0) > 0) }
+    val timerScope = rememberCoroutineScope()
+    LaunchedEffect(key1 = quiz.id) {
+        if (quiz.duration_minutes != null && quiz.duration_minutes > 0) {
+            timeLeft = quiz.duration_minutes * 60
+            isTimerActive.value = true
+            timerScope.launch {
+                while (timeLeft > 0 && isTimerActive.value && result == null) {
+                    kotlinx.coroutines.delay(1000)
+                    timeLeft--
+                }
+                if (timeLeft == 0 && result == null) {
+                    // Süre bittiğinde otomatik gönder
+                    val answerList = questions.map { q ->
+                        AnswerSubmit(
+                            question_id = q.id,
+                            selected_option = q.options[answers[q.id] ?: 0].id
+                        )
+                    }
+                    try {
+                        val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+                        val accessToken = sharedPrefs.getString("access_token", null) ?: ""
+                        val res = apiService.submitQuiz(
+                            quiz.id,
+                            QuizSubmitRequest(answerList),
+                            "Bearer $accessToken"
+                        )
+                        result = res
+                        onResult(res)
+                    } catch (e: Exception) {
+                        errorMessage = "Cevaplar gönderilemedi: ${e.localizedMessage ?: "Bilinmeyen hata"}"
+                    }
+                }
+            }
+        }
+    }
+
     if (result != null) {
         QuizResultScreen(result = result!!, onRetry = {
             result = null
@@ -116,6 +155,17 @@ fun SolveQuizScreen(
                 .verticalScroll(scrollState)
         ) {
             Text(quiz.title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
+            if (quiz.duration_minutes != null && quiz.duration_minutes > 0 && result == null) {
+                val minutes = timeLeft / 60
+                val seconds = timeLeft % 60
+                Text(
+                    text = String.format("Kalan Süre: %02d:%02d", minutes, seconds),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (timeLeft < 10) Color.Red else MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Spacer(modifier = Modifier.height(16.dp))
             questions.forEach { question ->
                 Text(question.text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)

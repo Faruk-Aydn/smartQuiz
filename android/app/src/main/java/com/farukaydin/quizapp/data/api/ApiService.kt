@@ -124,5 +124,6 @@ data class AIGenerateAndSaveQuizRequest(
     val difficulty: String = "medium",
     val num_questions: Int = 5,
     val title: String,
-    val description: String = ""
-) 
+    val description: String = "",
+    val duration_minutes: Int? = null
+)

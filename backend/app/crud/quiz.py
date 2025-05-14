@@ -14,7 +14,8 @@ def create_quiz(db: Session, obj_in: QuizCreate, teacher_id: int) -> Quiz:
         description=obj_in.description,
         subject=obj_in.subject,
         grade_level=obj_in.grade_level,
-        teacher_id=teacher_id
+        teacher_id=teacher_id,
+        duration_minutes=obj_in.duration_minutes
     )
     db.add(db_obj)
     db.commit()

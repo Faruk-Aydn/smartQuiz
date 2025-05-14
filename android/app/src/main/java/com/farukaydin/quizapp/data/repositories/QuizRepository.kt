@@ -26,8 +26,8 @@ class QuizRepository(private val apiService: ApiService) {
         return apiService.getQuiz(id)
     }
 
-    suspend fun createQuiz(title: String, description: String, subject: String, gradeLevel: String, token: String): Response<Quiz> {
-        return apiService.createQuiz(QuizCreate(title, description, subject, gradeLevel), "Bearer $token")
+    suspend fun createQuiz(title: String, description: String, subject: String, gradeLevel: String, durationMinutes: Int?, token: String): Response<Quiz> {
+        return apiService.createQuiz(QuizCreate(title, description, subject, gradeLevel, durationMinutes), "Bearer $token")
     }
 
     suspend fun aiGenerateQuiz(topic: String, difficulty: String, numQuestions: Int, token: String) =
@@ -36,9 +36,9 @@ class QuizRepository(private val apiService: ApiService) {
             "Bearer $token"
         )
 
-    suspend fun aiGenerateAndSaveQuiz(topic: String, difficulty: String, numQuestions: Int, title: String, description: String, token: String): Response<Quiz> =
+    suspend fun aiGenerateAndSaveQuiz(topic: String, difficulty: String, numQuestions: Int, title: String, description: String, durationMinutes: Int?, token: String): Response<Quiz> =
         apiService.aiGenerateAndSaveQuiz(
-            com.farukaydin.quizapp.data.api.AIGenerateAndSaveQuizRequest(topic, difficulty, numQuestions, title, description),
+            com.farukaydin.quizapp.data.api.AIGenerateAndSaveQuizRequest(topic, difficulty, numQuestions, title, description, durationMinutes),
             "Bearer $token"
         )
 

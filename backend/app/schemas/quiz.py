@@ -9,6 +9,7 @@ class QuizBase(BaseModel):
     description: Optional[str] = None
     subject: str
     grade_level: str
+    duration_minutes: Optional[int] = None
 
 class QuizCreate(QuizBase):
     questions: List[QuestionCreate] = []
@@ -22,6 +23,7 @@ class QuizResponse(QuizBase):
     is_active: bool
     teacher_id: int
     qr_code: Optional[str] = None
+    duration_minutes: Optional[int] = None
 
     class Config:
         from_attributes = True
