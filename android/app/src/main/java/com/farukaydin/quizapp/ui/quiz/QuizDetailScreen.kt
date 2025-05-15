@@ -23,6 +23,8 @@ import android.util.Base64
 import android.graphics.BitmapFactory
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +37,9 @@ fun QuizDetailScreen(
     onAddQuestion: ((String, List<String>, Int) -> Unit)? = null,
     onDeleteQuestion: ((Int) -> Unit)? = null
 ) {
+    val viewModel: QuizListViewModel = viewModel()
+    val context = LocalContext.current
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -61,7 +66,6 @@ fun QuizDetailScreen(
                 val base64Image = qrCodeString.substringAfter("base64,")
                 val imageBytes = remember(qrCodeString) { Base64.decode(base64Image, Base64.DEFAULT) }
                 val bitmap = remember(qrCodeString) { BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size) }
-                val context = LocalContext.current
                 bitmap?.let {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -126,7 +130,6 @@ fun QuizDetailScreen(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         // Doğru şık seçimi için state
-                        val context = LocalContext.current
                         val correctOptionId = rememberSaveable(question.id) { mutableStateOf(question.options.find { it.isCorrect }?.id ?: question.options.first().id) }
                         val isSaving = remember { mutableStateOf(false) }
                         val saveResult = remember { mutableStateOf<String?>(null) }
@@ -154,28 +157,17 @@ fun QuizDetailScreen(
                             onClick = {
                                 isSaving.value = true
                                 saveResult.value = null
-                                val sharedPreferences = context.getSharedPreferences("quiz_prefs", Context.MODE_PRIVATE)
-                                val token = sharedPreferences.getString("token", null)
+                                val sharedPreferences = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
+                                val token = sharedPreferences.getString("access_token", null)
                                 if (token != null) {
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        try {
-                                            val response = com.farukaydin.quizapp.data.api.RetrofitClient.apiService.setCorrectOption(
-                                                question.id,
-                                                mapOf("option_id" to correctOptionId.value!!),
-                                                "Bearer $token"
-                                            )
-                                            withContext(Dispatchers.Main) {
-                                                isSaving.value = false
-                                                if (response.isSuccessful) {
-                                                    saveResult.value = "Başarıyla kaydedildi"
-                                                } else {
-                                                    saveResult.value = "Hata: ${'$'}{response.code()}"
-                                                }
-                                            }
-                                        } catch (e: Exception) {
-                                            withContext(Dispatchers.Main) {
-                                                isSaving.value = false
-                                                saveResult.value = "Sunucu hatası: ${'$'}{e.localizedMessage}" 
+                                        val result = viewModel.setCorrectOption(question.id, correctOptionId.value!!)
+                                        withContext(Dispatchers.Main) {
+                                            isSaving.value = false
+                                            if (result) {
+                                                saveResult.value = "Başarıyla kaydedildi"
+                                            } else {
+                                                saveResult.value = "Hata: Kayıt başarısız."
                                             }
                                         }
                                     }

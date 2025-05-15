@@ -22,10 +22,12 @@ import com.farukaydin.quizapp.data.api.ApiService
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,25 +91,40 @@ fun QuizResultScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SolveQuizScreen(
     quiz: QuizResponse,
     questions: List<Question>,
     apiService: ApiService,
+    quizListViewModel: QuizListViewModel,
+    navController: NavController,
     onResult: (QuizSubmitResult) -> Unit = {},
     onRetry: () -> Unit = {},
     onHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    // Lifecycle event dinleyici (güncel Compose yöntemi)
+    // Çözülen quiz kontrolü
+    val solvedQuizzes = quizListViewModel.solvedQuizzes.collectAsState()
+    val alreadySolved = solvedQuizzes.value.any { it.quiz_id == quiz.id }
 
+    LaunchedEffect(alreadySolved) {
+        if (alreadySolved) {
+            Toast.makeText(context, "Bu quiz'i zaten tamamladınız. Tekrar çözemezsiniz.", Toast.LENGTH_LONG).show()
+            navController.popBackStack("studentHome", inclusive = false) // veya ana ekrana yönlendirin
+        }
+    }
+    if (alreadySolved) return
+
+    // Lifecycle event dinleyici (güncel Compose yöntemi)
     var quizKicked by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
                 quizKicked = true
+                // Eğer backend'de "quizden atıldı" endpoint'i eklenirse burada çağrılabilir.
+                // Örn: apiService.kickQuiz(quiz.id, "Bearer $accessToken")
+                // Şu an için cevaplar gönderilmiyor ve sadece tekrar giriş engellenmeli.
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

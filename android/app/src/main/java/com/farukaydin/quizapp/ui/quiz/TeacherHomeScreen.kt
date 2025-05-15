@@ -25,8 +25,19 @@ fun TeacherHomeScreen(
     onQuizList: () -> Unit,
     onResults: () -> Unit,
     onDetailedResults: (quizId: Int) -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    navController: androidx.navigation.NavController // NavController parametresi eklendi
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", android.content.Context.MODE_PRIVATE)
+    val savedToken = sharedPrefs.getString("access_token", null)
+    androidx.compose.runtime.LaunchedEffect(savedToken) {
+        if (savedToken.isNullOrEmpty()) {
+            navController.navigate("login") {
+                popUpTo("teacherHome") { inclusive = true }
+            }
+        }
+    }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background

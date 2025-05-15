@@ -160,19 +160,48 @@ fun AICreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit, viewModel: C
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = difficulty,
-            onValueChange = { difficulty = it },
-            label = { Text("Zorluk") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-            )
+        // Dropdown for difficulty selection
+        val difficultyOptions = listOf(
+            "Kolay" to "easy",
+            "Orta" to "medium",
+            "Zor" to "hard"
         )
+        var expanded by remember { mutableStateOf(false) }
+        val selectedDifficultyText = difficultyOptions.find { it.second == difficulty }?.first ?: "Orta"
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = selectedDifficultyText,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Zorluk") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                difficultyOptions.forEach { (label, value) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            difficulty = value
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = numQuestions,
@@ -270,6 +299,7 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var success by remember { mutableStateOf(false) }
+    var difficulty by remember { mutableStateOf("medium") } // Varsayılan orta
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -282,6 +312,49 @@ fun ManualCreateQuizForm(onBack: () -> Unit, onQuizCreated: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Dropdown for difficulty selection
+        val difficultyOptions = listOf(
+            "Kolay" to "easy",
+            "Orta" to "medium",
+            "Zor" to "hard"
+        )
+        var expanded by remember { mutableStateOf(false) }
+        val selectedDifficultyText = difficultyOptions.find { it.second == difficulty }?.first ?: "Orta"
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = selectedDifficultyText,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Zorluk") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                difficultyOptions.forEach { (label, value) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            difficulty = value
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },

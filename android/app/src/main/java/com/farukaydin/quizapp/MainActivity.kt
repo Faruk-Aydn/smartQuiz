@@ -1,6 +1,7 @@
 package com.farukaydin.quizapp
 
 import android.app.Application
+import android.widget.Toast
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -62,6 +63,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -85,17 +87,62 @@ class MainActivity : ComponentActivity() {
             val savedToken = sharedPrefs.getString("access_token", null)
             val savedRole = sharedPrefs.getString("user_role", null)
 
-            // ZXing QR kod okuma launcher
+            // QuizListViewModel tanımı (tekrar kullanılacak şekilde)
+            val quizListViewModel: QuizListViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return QuizListViewModel(application) as T
+                    }
+                }
+            )
+
+            // QR kod okuma işlemi için state'ler
+            val qrScanLoading = remember { mutableStateOf(false) }
+            val qrScanResultQuizId = remember { mutableStateOf<Int?>(null) }
+            val qrScanResultHandled = remember { mutableStateOf(false) }
+
             val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
                 val scannedText = result.contents
                 scannedText?.let {
-                    // Ör: akilliquiz://quiz/5
                     val quizId = it.substringAfterLast("/").toIntOrNull()
-                    quizId?.let { id ->
-                        navController.navigate("quizDetail/$id")
+                    if (quizId != null) {
+                        qrScanResultQuizId.value = quizId
+                        qrScanLoading.value = true
+                        qrScanResultHandled.value = false
+                        quizListViewModel.fetchSolvedQuizzes()
                     }
                 }
             }
+
+            // QR scan sonrası solvedQuizzes güncellendiğinde kontrol et
+            LaunchedEffect(qrScanLoading.value, quizListViewModel.solvedQuizzes.value, qrScanResultQuizId.value) {
+                if (qrScanLoading.value && qrScanResultQuizId.value != null && !qrScanResultHandled.value) {
+                    val id = qrScanResultQuizId.value!!
+                    val solved = quizListViewModel.solvedQuizzes.value.any { it.quiz_id == id }
+                    if (solved) {
+                        Toast.makeText(context, "Bu quiz'i zaten tamamladınız. Tekrar katılamazsınız.", Toast.LENGTH_LONG).show()
+                        qrScanLoading.value = false
+                        qrScanResultHandled.value = true
+                    } else {
+                        navController.navigate("quizDetail/$id")
+                        qrScanLoading.value = false
+                        qrScanResultHandled.value = true
+                    }
+                }
+            }
+
+            if (qrScanLoading.value) {
+                // Kullanıcıya yükleniyor göstergesi
+                Box(
+                    modifier = Modifier.fillMaxSize().background(Color(0x88000000)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            // Otomatik yönlendirme ve NavHost gibi diğer Compose kodları burada devam edecek...
 
             // Otomatik yönlendirme
             LaunchedEffect(savedToken, savedRole) {
@@ -121,6 +168,12 @@ class MainActivity : ComponentActivity() {
             }
 
             NavHost(navController, startDestination = startDest) {
+    composable("createQuiz") {
+        CreateQuizScreen(
+            onBack = { navController.popBackStack() },
+            onQuizCreated = { navController.navigate("quizList") }
+        )
+    }
                 // Öğrenci quiz çözüp sonucu gördükten sonra ana sayfaya dönebilsin diye SolveQuizScreen için route ekleniyor.
                 composable("solveQuiz/{quizId}") { backStackEntry ->
                     val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull()
@@ -133,7 +186,22 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     if (quizId != null) {
-                        QuizDetailScreenWithViewModel(quizId = quizId, viewModel = quizListViewModel, navController = navController)
+                        val quiz = com.farukaydin.quizapp.data.models.QuizResponse(
+                            id = quizId,
+                            title = "Örnek Quiz",
+                            description = "Açıklama",
+                            qr_code = null,
+                            duration_minutes = 10,
+                            questions = emptyList()
+                        )
+                        val questions = emptyList<com.farukaydin.quizapp.data.models.Question>()
+                        SolveQuizScreen(
+                            quiz = quiz,
+                            questions = questions,
+                            apiService = RetrofitClient.apiService,
+                            quizListViewModel = quizListViewModel,
+                            navController = navController
+                        )
                     } else {
                         Text("Quiz ID geçersiz")
                     }
@@ -229,7 +297,8 @@ class MainActivity : ComponentActivity() {
                             navController.navigate("login") {
                                 popUpTo(0) { inclusive = true }
                             }
-                        }
+                        },
+                        navController = navController
                     )
                 }
                 composable("teacherDetailedResults/{quizId}") { backStackEntry ->
@@ -268,19 +337,7 @@ class MainActivity : ComponentActivity() {
                         onProfileClick = { navController.navigate("profile") },
                         onJoinQuizClick = { navController.navigate("joinQuiz") },
                         onResultsClick = { navController.navigate("studentResults") },
-                        onLogoutClick = {
-                            val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
-                            sharedPrefs.edit().clear().apply()
-                            navController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-                composable("createQuiz") {
-                    CreateQuizScreen(
-                        onBack = { navController.popBackStack() },
-                        onQuizCreated = { navController.popBackStack() }
+                        navController = navController
                     )
                 }
                 composable("results") {
@@ -457,12 +514,8 @@ fun QuizDetailScreenWithViewModel(quizId: Int?, viewModel: QuizListViewModel, na
                 quiz = quizDetailState.quiz,
                 questions = quizDetailState.questions,
                 apiService = RetrofitClient.apiService,
-                onHome = {
-                    navController.navigate("studentHome") {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
-                }
+                quizListViewModel = viewModel,
+                navController = navController
             )
         }
 

@@ -34,6 +34,14 @@ data class QuizDetailedResultState(
 )
 
 class QuizListViewModel(application: Application) : AndroidViewModel(application) {
+    // Doğru şık kaydetme fonksiyonu
+    suspend fun setCorrectOption(questionId: Int, correctOptionId: Int): Boolean {
+        if (token != null) {
+            val response = quizRepository.setCorrectOption(questionId, correctOptionId, token)
+            return response.isSuccessful
+        }
+        return false
+    }
     private val _solvedQuizzes = MutableStateFlow<List<SolvedQuizInfo>>(emptyList())
     val solvedQuizzes: StateFlow<List<SolvedQuizInfo>> = _solvedQuizzes
 

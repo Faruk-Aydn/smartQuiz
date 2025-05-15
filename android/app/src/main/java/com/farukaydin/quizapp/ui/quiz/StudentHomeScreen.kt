@@ -19,8 +19,19 @@ fun StudentHomeScreen(
     userName: String?,
     onProfileClick: () -> Unit,
     onJoinQuizClick: () -> Unit,
-    onResultsClick: () -> Unit
+    onResultsClick: () -> Unit,
+    navController: androidx.navigation.NavController // NavController parametresi eklendi
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", android.content.Context.MODE_PRIVATE)
+    val savedToken = sharedPrefs.getString("access_token", null)
+    androidx.compose.runtime.LaunchedEffect(savedToken) {
+        if (savedToken.isNullOrEmpty()) {
+            navController.navigate("login") {
+                popUpTo("studentHome") { inclusive = true }
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

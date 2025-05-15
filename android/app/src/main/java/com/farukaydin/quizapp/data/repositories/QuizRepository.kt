@@ -16,19 +16,23 @@ import retrofit2.Response
 class QuizRepository(private val apiService: ApiService) {
     suspend fun getSolvedQuizzes(token: String): Response<List<SolvedQuizInfo>> {
         return apiService.getSolvedQuizzes("Bearer $token")
-    }
+
+}
 
     suspend fun getQuizzes(token: String): Response<List<Quiz>> {
         return apiService.getQuizzes(token)
-    }
+
+}
 
     suspend fun getQuiz(id: Int): Response<QuizResponse> {
         return apiService.getQuiz(id)
-    }
+
+}
 
     suspend fun createQuiz(title: String, description: String, subject: String, gradeLevel: String, durationMinutes: Int?, token: String): Response<Quiz> {
         return apiService.createQuiz(QuizCreate(title, description, subject, gradeLevel, durationMinutes), "Bearer $token")
-    }
+
+}
 
     suspend fun aiGenerateQuiz(topic: String, difficulty: String, numQuestions: Int, token: String) =
         apiService.aiGenerateQuiz(
@@ -44,16 +48,19 @@ class QuizRepository(private val apiService: ApiService) {
 
     suspend fun getAvailableQuizzes(token: String): Response<List<Quiz>> {
         return apiService.getAvailableQuizzes(token)
-    }
+
+}
 
     suspend fun getQuizDetail(quizId: Int, token: String): Response<QuizWithQuestions> {
         return apiService.getQuizDetail(quizId, "Bearer $token")
-    }
+
+}
 
     suspend fun addQuestion(question: QuestionCreate, token: String): Boolean {
         val response = apiService.addQuestion(question, "Bearer $token")
         return response.isSuccessful
-    }
+
+}
 
     suspend fun getQuizResults(quizId: Int, token: String) =
         apiService.getQuizResults(quizId, "Bearer $token")
@@ -63,17 +70,25 @@ class QuizRepository(private val apiService: ApiService) {
 
     suspend fun addQuestionToQuiz(quizId: Int, question: QuestionCreate, token: String): Response<Question> {
         return apiService.addQuestionToQuiz(quizId, question, "Bearer $token")
-    }
+
+}
 
     suspend fun deleteQuiz(quizId: Int, token: String): Response<Quiz> {
         return apiService.deleteQuiz(quizId, "Bearer $token")
-    }
+
+}
 
     suspend fun deleteQuestion(questionId: Int, token: String): Response<Unit> {
         return apiService.deleteQuestion(questionId, "Bearer $token")
-    }
+
+}
 
     suspend fun getStudentResults(quizId: Int, token: String): Response<StudentQuizResultDetail> {
         return apiService.getStudentResults(quizId, "Bearer $token")
+
+}
+    suspend fun setCorrectOption(questionId: Int, correctOptionId: Int, token: String): Response<Question> {
+        val body = mapOf("correct_option_id" to correctOptionId)
+        return apiService.setCorrectOption(questionId, body, "Bearer $token")
     }
 }
