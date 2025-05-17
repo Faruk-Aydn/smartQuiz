@@ -86,6 +86,7 @@ class MainActivity : ComponentActivity() {
             val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
             val savedToken = sharedPrefs.getString("access_token", null)
             val savedRole = sharedPrefs.getString("user_role", null)
+            val savedUserName = sharedPrefs.getString("user_name", null)
 
             // QuizListViewModel tanımı (tekrar kullanılacak şekilde)
             val quizListViewModel: QuizListViewModel = viewModel(
@@ -145,8 +146,8 @@ class MainActivity : ComponentActivity() {
             // Otomatik yönlendirme ve NavHost gibi diğer Compose kodları burada devam edecek...
 
             // Otomatik yönlendirme
-            LaunchedEffect(savedToken, savedRole) {
-                if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty()) {
+            LaunchedEffect(savedToken, savedRole, savedUserName) {
+                if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty() && !savedUserName.isNullOrEmpty()) {
                     if (savedRole == "student") {
                         navController.navigate("studentHome") {
                             popUpTo("login") { inclusive = true }
@@ -156,10 +157,14 @@ class MainActivity : ComponentActivity() {
                             popUpTo("login") { inclusive = true }
                         }
                     }
+                } else {
+                    navController.navigate("login") {
+                        popUpTo("studentHome") { inclusive = true }
+                    }
                 }
             }
 
-            val startDest = if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty()) {
+            val startDest = if (!savedToken.isNullOrEmpty() && !savedRole.isNullOrEmpty() && !savedUserName.isNullOrEmpty()) {
                 if (savedRole == "student") "studentHome"
                 else if (savedRole == "teacher") "teacherHome"
                 else "login"
@@ -337,6 +342,13 @@ class MainActivity : ComponentActivity() {
                         onProfileClick = { navController.navigate("profile") },
                         onJoinQuizClick = { navController.navigate("joinQuiz") },
                         onResultsClick = { navController.navigate("studentResults") },
+                        onLogoutClick = {
+                            val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", android.content.Context.MODE_PRIVATE)
+                            sharedPrefs.edit().remove("access_token").apply()
+                            navController.navigate("login") {
+                                popUpTo("studentHome") { inclusive = true }
+                            }
+                        },
                         navController = navController
                     )
                 }

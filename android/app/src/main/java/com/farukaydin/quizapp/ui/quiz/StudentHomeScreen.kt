@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
@@ -12,7 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun StudentHomeScreen(
@@ -20,6 +23,7 @@ fun StudentHomeScreen(
     onProfileClick: () -> Unit,
     onJoinQuizClick: () -> Unit,
     onResultsClick: () -> Unit,
+    onLogoutClick: () -> Unit,
     navController: androidx.navigation.NavController // NavController parametresi eklendi
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -67,30 +71,60 @@ fun StudentHomeScreen(
             onClick = onProfileClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = MaterialTheme.shapes.medium
+                .height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
+            elevation = ButtonDefaults.buttonElevation(6.dp)
         ) {
-            Text("Profilim", style = MaterialTheme.typography.titleMedium)
+            Text("Profilim", fontWeight = FontWeight.Medium, fontSize = 18.sp)
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
         Button(
             onClick = onJoinQuizClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = MaterialTheme.shapes.medium
+                .height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
+            elevation = ButtonDefaults.buttonElevation(6.dp)
         ) {
-            Text("Quiz'e Katıl", style = MaterialTheme.typography.titleMedium)
+            Text("Quiz'e Katıl", fontWeight = FontWeight.Medium, fontSize = 18.sp)
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
         Button(
             onClick = onResultsClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = MaterialTheme.shapes.medium
+                .height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
+            elevation = ButtonDefaults.buttonElevation(6.dp)
         ) {
-            Text("Sonuçlarım", style = MaterialTheme.typography.titleMedium)
+            Text("Sonuçlarım", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+        }
+        Spacer(modifier = Modifier.height(18.dp))
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ),
+            elevation = ButtonDefaults.buttonElevation(6.dp)
+        ) {
+            Text("Çıkış Yap", fontWeight = FontWeight.Medium, fontSize = 18.sp)
         }
     }
 }
