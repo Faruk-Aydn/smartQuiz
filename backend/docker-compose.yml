@@ -5,5 +5,5 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - REDIS_URL=rediss://default:AXAfAAIjcDE4Y2U0N2Y0OTgyMzU0MzBjOGE4ZmRhZTMwMmEyMDk2OXAxMA@wealthy-goose-28703.upstash.io:6379
+      - REDIS_URL="rediss://default:ATdoAAIjcDE0MzAzNDIwZWYwYjU0YzhlYmJmOTQ5MzA1NTI3OTZhMnAxMA@key-stag-14184.upstash.io:6379"
     # Eğer başka environment variable'lar varsa buraya ekleyebilirsin
