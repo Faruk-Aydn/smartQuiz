@@ -21,6 +21,7 @@ import com.farukaydin.quizapp.data.models.QuizSubmitResult
 import com.farukaydin.quizapp.data.api.ApiService
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +29,10 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Divider
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,57 +40,87 @@ import androidx.navigation.NavController
 fun QuizResultScreen(
     result: QuizSubmitResult,
     onRetry: () -> Unit = {},
-    onHome: () -> Unit = {}
+    onHome: () -> Unit = {},
+    navController: NavController? = null
 ) {
-    Surface(
+    val primaryBlue = Color(0xFF2979FF)
+    val backgroundGradient = Brush.radialGradient(
+        colors = listOf(
+            Color(0xFFB2FEFA),
+            Color(0xFFE3F2FD),
+            Color(0xFFE0F7FA)
+        )
+    )
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 4.dp
+            .background(backgroundGradient)
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Surface(
+            color = Color(0xFFFCFEFF),
+            tonalElevation = 2.dp,
+            shadowElevation = 8.dp,
+            shape = RoundedCornerShape(24.dp),
+            border = BorderStroke(1.dp, Color(0x332979FF)),
+            modifier = Modifier.align(Alignment.Center)
         ) {
-            Text(
-                text = "Quiz Sonucu",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CheckCircle, contentDescription = "Doğru", tint = Color(0xFF4CAF50))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Doğru: ${result.correct}", color = Color(0xFF4CAF50), style = MaterialTheme.typography.bodyLarge)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Close, contentDescription = "Yanlış", tint = Color(0xFFF44336))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Yanlış: ${result.wrong}", color = Color(0xFFF44336), style = MaterialTheme.typography.bodyLarge)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Skor: ${result.score}",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = when {
-                    result.score > 80 -> "Harika iş çıkardın!"
-                    result.score > 50 -> "Fena değil, daha iyi olabilirsin!"
-                    else -> "Daha çok çalışmalısın!"
-                },
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = onHome, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Text("Ana Sayfa")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Quiz Sonucu",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryBlue
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = "Doğru", tint = Color(0xFF16A34A))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Doğru: ${result.correct}", color = Color(0xFF16A34A), style = MaterialTheme.typography.bodyLarge)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Close, contentDescription = "Yanlış", tint = Color(0xFFE53935))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Yanlış: ${result.wrong}", color = Color(0xFFE53935), style = MaterialTheme.typography.bodyLarge)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Divider(color = Color(0x1A000000))
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Skor: ${result.score}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = primaryBlue,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = when {
+                        result.score > 80 -> "Harika iş çıkardın!"
+                        result.score > 50 -> "Fena değil, daha iyi olabilirsin!"
+                        else -> "Daha çok çalışmalısın!"
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF546E7A)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = {
+                        navController?.let {
+                            it.popBackStack("studentHome", inclusive = false)
+                            it.navigate("studentHome")
+                        } ?: onHome()
+                    },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue, contentColor = Color.White)
+                ) {
+                    Text("Ana Sayfa")
+                }
             }
         }
     }
@@ -195,45 +230,65 @@ fun SolveQuizScreen(
             result = null
             answers.clear()
             onRetry()
-        }, onHome = onHome)
+        }, onHome = onHome, navController = navController)
     } else {
+        val primaryBlue = Color(0xFF2979FF)
+        val backgroundGradient = Brush.radialGradient(
+            colors = listOf(
+                Color(0xFFB2FEFA),
+                Color(0xFFE3F2FD),
+                Color(0xFFE0F7FA)
+            )
+        )
         Column(
             modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundGradient)
                 .padding(16.dp)
-                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
         ) {
-            Text(quiz.title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
+            Text(quiz.title, style = MaterialTheme.typography.headlineMedium, color = primaryBlue, fontWeight = FontWeight.Bold)
             if (quiz.duration_minutes != null && quiz.duration_minutes > 0 && result == null) {
                 val minutes = timeLeft / 60
                 val seconds = timeLeft % 60
                 Text(
                     text = String.format("Kalan Süre: %02d:%02d", minutes, seconds),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (timeLeft < 10) Color.Red else MaterialTheme.colorScheme.primary,
+                    color = if (timeLeft < 10) Color(0xFFE53935) else primaryBlue,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Spacer(modifier = Modifier.height(16.dp))
             questions.forEach { question ->
-                Text(question.text, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Surface(
+                    color = Color(0xFFFCFEFF),
+                    tonalElevation = 1.dp,
+                    shadowElevation = 4.dp,
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, Color(0x332979FF)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(question.text, style = MaterialTheme.typography.titleMedium, color = Color(0xFF1F2937))
                 // This will display all options (now 5) dynamically:
-                question.options.forEachIndexed { idx, option ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = answers[question.id] == idx,
-                            onClick = { answers[question.id] = idx },
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = MaterialTheme.colorScheme.primary,
-                                unselectedColor = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                        Text(option.text, color = MaterialTheme.colorScheme.onSurface)
+                        question.options.forEachIndexed { idx, option ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(
+                                    selected = answers[question.id] == idx,
+                                    onClick = { answers[question.id] = idx },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = primaryBlue,
+                                        unselectedColor = Color(0xFF546E7A)
+                                    )
+                                )
+                                Text(option.text, color = Color(0xFF1F2937))
+                            }
+                        }
                     }
-                } // End dynamic option rendering
-
-                Spacer(modifier = Modifier.height(8.dp))
+                }
             }
             if (errorMessage != null) {
                 Text(errorMessage!!, color = MaterialTheme.colorScheme.error)
@@ -268,12 +323,15 @@ fun SolveQuizScreen(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
                 enabled = answers.size == questions.size,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue, contentColor = Color.White),
+                shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Bitir", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Bitir")
             }
         }
     }
-} 
+}
