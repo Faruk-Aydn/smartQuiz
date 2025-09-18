@@ -93,7 +93,8 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
                     quizRepository.getQuizzes("Bearer $token")
                 }
                 if (response.isSuccessful && response.body() != null) {
-                    _uiState.value = QuizListUiState(quizzes = response.body()!!)
+                    val sorted = response.body()!!.sortedByDescending { it.id }
+                    _uiState.value = QuizListUiState(quizzes = sorted)
                 } else {
                     _uiState.value = QuizListUiState(error = "Quizler alınamadı: ${response.message()}")
                 }
@@ -173,6 +174,10 @@ class QuizListViewModel(application: Application) : AndroidViewModel(application
                 _quizResultsState.value = QuizResultsState(error = "Hata: ${e.localizedMessage}")
             }
         }
+    }
+
+    fun clearQuizDetail() {
+        _quizDetailState.value = QuizDetailState(isLoading = false)
     }
 
     private var currentOffset = 0

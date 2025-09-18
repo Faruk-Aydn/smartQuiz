@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.farukaydin.quizapp.ui.quiz
 
 import android.content.Context
@@ -12,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
@@ -29,29 +32,96 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.activity.ComponentActivity
 
 @Composable
 fun QuizDetailScreen(
     quiz: QuizResponse,
     questions: List<Question>,
     onAddQuestion: ((String, List<String>, Int) -> Unit)? = null,
-    onDeleteQuestion: ((Int) -> Unit)? = null
+    onDeleteQuestion: ((Int) -> Unit)? = null,
+    onBack: (() -> Unit)? = null,
+    showTopBar: Boolean = false
 ) {
     val viewModel: QuizListViewModel = viewModel()
     val context = LocalContext.current
+    val primaryBlue = Color(0xFF2979FF)
+    val backgroundGradient = Brush.radialGradient(
+        colors = listOf(
+            Color(0xFFB2FEFA),
+            Color(0xFFE3F2FD),
+            Color(0xFFE0F7FA)
+        )
+    )
+    var pendingDeleteQuestionId by remember { mutableStateOf<Int?>(null) }
+
+    // Confirm dialog for deleting a question
+    pendingDeleteQuestionId?.let { qid ->
+        AlertDialog(
+            onDismissRequest = { pendingDeleteQuestionId = null },
+            title = { Text("Soru silinsin mi?") },
+            text = { Text("Bu soruyu silmek istediğinizden emin misiniz?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                    onDeleteQuestion?.invoke(qid)
+                    pendingDeleteQuestionId = null
+                },
+                    colors = ButtonDefaults.textButtonColors(contentColor = primaryBlue)
+                ) { Text("Sil") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { pendingDeleteQuestionId = null },
+                    colors = ButtonDefaults.textButtonColors(contentColor = primaryBlue)
+                ) { Text("Vazgeç") }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color(0xFFFCFEFF),
+            titleContentColor = primaryBlue,
+            textContentColor = Color(0xFF546E7A),
+            tonalElevation = 6.dp
+        )
+    }
+
+    // Optional back TopAppBar (use when this screen is not hosted under another Scaffold)
+    if (showTopBar) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        TopAppBar(
+            title = { Text("") },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+                navigationIconContentColor = primaryBlue,
+                titleContentColor = primaryBlue
+            ),
+            navigationIcon = {
+                IconButton(onClick = { if (onBack != null) onBack() else (ctx as? ComponentActivity)?.onBackPressedDispatcher?.onBackPressed() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Geri",
+                        tint = primaryBlue
+                    )
+                }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
+            .background(brush = backgroundGradient)
+            .padding(16.dp)
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
             Text(
                 text = quiz.title,
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary
+                color = primaryBlue
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -67,16 +137,26 @@ fun QuizDetailScreen(
                 val imageBytes = remember(qrCodeString) { Base64.decode(base64Image, Base64.DEFAULT) }
                 val bitmap = remember(qrCodeString) { BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size) }
                 bitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "Quiz QR Kodu",
-                        modifier = Modifier
-                            .size(180.dp)
-                            .padding(vertical = 12.dp)
-                            .background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
-                    )
+                    Surface(
+                        color = Color(0xFFFCFEFF),
+                        shape = RoundedCornerShape(16.dp),
+                        tonalElevation = 1.dp,
+                        shadowElevation = 4.dp,
+                        border = BorderStroke(1.dp, Color(0x332979FF))
+                    ) {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = "Quiz QR Kodu",
+                            modifier = Modifier
+                                .size(180.dp)
+                                .padding(12.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { QrShareUtils.shareQrImage(context, it) }) {
+                    Button(
+                        onClick = { QrShareUtils.shareQrImage(context, it) },
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryBlue)
+                    ) {
                         Text(text = "QR Kodunu Paylaş")
                     }
                 }
@@ -85,7 +165,7 @@ fun QuizDetailScreen(
             Text(
                 text = "Quiz Kodu: ${quiz.id}",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
+                color = primaryBlue,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
@@ -102,15 +182,24 @@ fun QuizDetailScreen(
             }
         } else {
             items(questions) { question ->
-                Card(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    elevation = CardDefaults.cardElevation(2.dp),
-                    shape = MaterialTheme.shapes.medium
+                    color = Color(0xFFFCFEFF),
+                    tonalElevation = 2.dp,
+                    shadowElevation = 6.dp,
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, Color(0x332979FF))
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .height(4.dp)
+                                .width(40.dp)
+                                .background(primaryBlue, RoundedCornerShape(2.dp))
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -123,7 +212,7 @@ fun QuizDetailScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             if (onDeleteQuestion != null) {
-                                IconButton(onClick = { onDeleteQuestion(question.id) }) {
+                                IconButton(onClick = { pendingDeleteQuestionId = question.id }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Soru Sil", tint = MaterialTheme.colorScheme.error)
                                 }
                             }
@@ -142,7 +231,7 @@ fun QuizDetailScreen(
                                 RadioButton(
                                     selected = correctOptionId.value == option.id,
                                     onClick = { correctOptionId.value = option.id },
-                                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                                    colors = RadioButtonDefaults.colors(selectedColor = primaryBlue)
                                 )
                                 Text(
                                     text = option.text,
@@ -151,8 +240,9 @@ fun QuizDetailScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
+                            Spacer(modifier = Modifier.height(6.dp))
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Button(
                             onClick = {
                                 isSaving.value = true
@@ -178,7 +268,7 @@ fun QuizDetailScreen(
                             },
                             enabled = !isSaving.value,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue)
                         ) {
                             Text("Doğru Şıkkı Kaydet", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
                         }
@@ -205,31 +295,49 @@ fun QuizDetailScreen(
                 OutlinedButton(
                     onClick = { showAddQuestionForm = !showAddQuestionForm },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryBlue)
                 ) {
                     Text(if (showAddQuestionForm) "Ekleme Formunu Kapat" else "Soru Ekle")
                 }
 
                 if (showAddQuestionForm) {
-                    Card(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 12.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                        elevation = CardDefaults.cardElevation(1.dp),
-                        shape = MaterialTheme.shapes.medium
+                        color = Color(0xFFFCFEFF),
+                        tonalElevation = 1.dp,
+                        shadowElevation = 4.dp,
+                        shape = RoundedCornerShape(20.dp),
+                        border = BorderStroke(1.dp, Color(0x332979FF))
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
+                            Box(
+                                modifier = Modifier
+                                    .height(4.dp)
+                                    .width(40.dp)
+                                    .background(primaryBlue, RoundedCornerShape(2.dp))
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = questionText,
                                 onValueChange = { questionText = it },
                                 label = { Text("Soru") },
                                 modifier = Modifier.fillMaxWidth(),
-                                singleLine = false
+                                singleLine = false,
+                                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1F2937)),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    containerColor = Color(0xFFF2F7FF),
+                                    focusedBorderColor = primaryBlue,
+                                    unfocusedBorderColor = Color(0x332979FF),
+                                    focusedTextColor = Color(0xFF1F2937),
+                                    unfocusedTextColor = Color(0xFF1F2937),
+                                    cursorColor = primaryBlue
+                                )
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             options.forEachIndexed { index, option ->
@@ -240,7 +348,7 @@ fun QuizDetailScreen(
                                     RadioButton(
                                         selected = correctOptionIndex == index,
                                         onClick = { correctOptionIndex = index },
-                                        colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                                        colors = RadioButtonDefaults.colors(selectedColor = primaryBlue)
                                     )
                                     OutlinedTextField(
                                         value = option,
@@ -249,7 +357,16 @@ fun QuizDetailScreen(
                                         },
                                         label = { Text("Seçenek ${index + 1}") },
                                         modifier = Modifier.weight(1f),
-                                        singleLine = true
+                                        singleLine = true,
+                                        textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1F2937)),
+                                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                                            containerColor = Color(0xFFF2F7FF),
+                                            focusedBorderColor = primaryBlue,
+                                            unfocusedBorderColor = Color(0x332979FF),
+                                            focusedTextColor = Color(0xFF1F2937),
+                                            unfocusedTextColor = Color(0xFF1F2937),
+                                            cursorColor = primaryBlue
+                                        )
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
@@ -266,7 +383,7 @@ fun QuizDetailScreen(
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue)
                             ) {
                                 Text("Soruyu Kaydet", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
                             }

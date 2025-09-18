@@ -68,6 +68,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import com.farukaydin.quizapp.ui.quiz.TeacherResultsScreen
+import com.farukaydin.quizapp.ui.quiz.TeacherHomeScreen
 import com.farukaydin.quizapp.ui.quiz.TeacherHomeViewModel
 import com.farukaydin.quizapp.ui.quiz.TeacherDetailedResultsScreen
 import com.farukaydin.quizapp.ui.profile.ProfileScreen
@@ -173,12 +174,22 @@ class MainActivity : ComponentActivity() {
             }
 
             NavHost(navController, startDestination = startDest) {
-    composable("createQuiz") {
-        CreateQuizScreen(
-            onBack = { navController.popBackStack() },
-            onQuizCreated = { navController.navigate("quizList") }
-        )
-    }
+                composable("createQuiz") {
+                    CreateQuizScreen(
+                        onBack = { navController.popBackStack() },
+                        onQuizCreated = { navController.navigate("quizList") }
+                    )
+                }
+                composable("settings") {
+                    com.farukaydin.quizapp.ui.settings.SettingsScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable("about") {
+                    com.farukaydin.quizapp.ui.about.AboutScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
                 // Öğrenci quiz çözüp sonucu gördükten sonra ana sayfaya dönebilsin diye SolveQuizScreen için route ekleniyor.
                 composable("solveQuiz/{quizId}") { backStackEntry ->
                     val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull()
@@ -295,7 +306,7 @@ class MainActivity : ComponentActivity() {
                         onCreateQuiz = { navController.navigate("createQuiz") },
                         onQuizList = { navController.navigate("quizList") },
                         onResults = { navController.navigate("results") },
-                        onDetailedResults = { quizId -> navController.navigate("teacherDetailedResults/$quizId") },
+
                         onLogoutClick = {
                             val sharedPrefs = context.getSharedPreferences("quiz_app_prefs", Context.MODE_PRIVATE)
                             sharedPrefs.edit().clear().apply()

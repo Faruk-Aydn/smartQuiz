@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.farukaydin.quizapp.data.repositories.AuthRepository
 
+// ViewModel, modern TeacherHomeScreen ile uyumlu şekilde, kullanıcı adını ve gerekli state'i yönetir
 class TeacherHomeViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = AuthRepository(RetrofitClient.apiService)
     private val _userName = MutableStateFlow<String?>(null)

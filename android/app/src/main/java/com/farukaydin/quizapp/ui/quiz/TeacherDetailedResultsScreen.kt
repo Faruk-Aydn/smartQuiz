@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.farukaydin.quizapp.ui.quiz
 
 import androidx.compose.foundation.background
@@ -24,9 +26,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.text.style.TextOverflow
 import com.farukaydin.quizapp.data.models.*
 import com.farukaydin.quizapp.ui.quiz.QuizListViewModel
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.IconButton
+import androidx.activity.ComponentActivity
 
 @Composable
 fun TeacherDetailedResultsScreen(
@@ -47,31 +54,56 @@ fun TeacherDetailedResultsScreen(
             viewModel.fetchQuizDetailedResults(quizId, isLoadMore = true)
         }
     }
+    val primaryBlue = Color(0xFF2979FF)
+    val backgroundGradient = Brush.radialGradient(
+        colors = listOf(
+            Color(0xFFB2FEFA),
+            Color(0xFFE3F2FD),
+            Color(0xFFE0F7FA)
+        )
+    )
 
-    if (state.isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else if (state.error != null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = state.error ?: "Bilinmeyen hata", color = Color.Red)
-        }
-    } else if (state.result != null) {
-        val result = state.result!!
-        LazyColumn(
+    Scaffold(
+        topBar = {
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            TopAppBar(
+                title = { Text("") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    navigationIconContentColor = primaryBlue,
+                    titleContentColor = primaryBlue
+                ),
+                navigationIcon = {
+                    IconButton(onClick = { onBack() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Geri")
+                    }
+                }
+            )
+        },
+        containerColor = Color.Transparent
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
+                .background(brush = backgroundGradient)
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .navigationBarsPadding()
         ) {
-            item {
-                OutlinedButton(onClick = onBack, modifier = Modifier.padding(bottom = 12.dp)) {
-                    Text("← Geri")
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
+            } else if (state.error != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = state.error ?: "Bilinmeyen hata", color = MaterialTheme.colorScheme.error)
+                }
+            } else if (state.result != null) {
+                val result = state.result!!
                 Text(
                     text = result.title,
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
+                    color = primaryBlue
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -81,38 +113,42 @@ fun TeacherDetailedResultsScreen(
                     StatBox("En Düşük", "${result.minScore}")
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                SectionTitle("En Çok Yanlış Yapılan Sorular", color = Color.Red)
+                SectionTitle("En Çok Yanlış Yapılan Sorular", color = primaryBlue)
                 if (result.mostWrongQuestions.isEmpty()) {
-                    Text("Veri yok", color = Color.Gray)
+                    Text("Veri yok", color = Color(0xFF546E7A))
                 } else {
                     result.mostWrongQuestions.forEach {
-                        Text("- ${it.text} (${it.wrongCount} yanlış)", color = Color.Red)
+                        Text("- ${it.text} (${it.wrongCount} yanlış)", color = Color(0xFF546E7A))
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 SectionTitle("Soru Bazında Analiz")
-            }
-            items(result.questions) { q ->
-                QuestionCard(q)
-            }
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SectionTitle("Öğrenci Sonuçları")
-            }
-            items(state.students) { student ->
-                StudentCard(student)
-            }
-            if (state.isLoadingMore) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(Modifier.size(32.dp))
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    state = listState,
+                    contentPadding = PaddingValues(bottom = 96.dp)
+                ) {
+                    items(result.questions) { q ->
+                        QuestionCard(q)
                     }
-                }
-            }
-            if (!state.hasMore && state.students.isNotEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text("Tüm öğrenciler yüklendi", color = Color.Gray)
+                    item { Spacer(modifier = Modifier.height(16.dp)); SectionTitle("Öğrenci Sonuçları") }
+                    items(state.students) { student ->
+                        StudentCard(student)
+                    }
+                    if (state.isLoadingMore) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(Modifier.size(32.dp))
+                            }
+                        }
+                    }
+                    if (!state.hasMore && state.students.isNotEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Text("Tüm öğrenciler yüklendi", color = Color(0xFF546E7A))
+                            }
+                        }
                     }
                 }
             }
@@ -124,15 +160,22 @@ fun TeacherDetailedResultsScreen(
 
 @Composable
 fun StatBox(title: String, value: String) {
-    Column(
-        modifier = Modifier
-            .padding(4.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val primaryBlue = Color(0xFF2979FF)
+    Surface(
+        color = Color(0xFFFCFEFF),
+        tonalElevation = 1.dp,
+        shadowElevation = 2.dp,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0x332979FF)),
+        modifier = Modifier.padding(4.dp)
     ) {
-        Text(title, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(title, fontSize = 12.sp, color = Color(0xFF546E7A))
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1F2937))
+        }
     }
 }
 
@@ -148,22 +191,35 @@ fun SectionTitle(text: String, color: Color = MaterialTheme.colorScheme.primary)
 
 @Composable
 fun QuestionCard(q: QuestionStat) {
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+            .padding(vertical = 8.dp),
+        color = Color(0xFFFCFEFF),
+        tonalElevation = 2.dp,
+        shadowElevation = 6.dp,
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, Color(0x332979FF))
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            val primaryBlue = Color(0xFF2979FF)
+            Box(
+                modifier = Modifier
+                    .height(4.dp)
+                    .width(40.dp)
+                    .background(primaryBlue, RoundedCornerShape(2.dp))
+            )
+            Spacer(Modifier.height(8.dp))
             Text(
                 q.text,
                 fontWeight = FontWeight.SemiBold,
                 softWrap = true,
-                overflow = TextOverflow.Visible
+                overflow = TextOverflow.Visible,
+                color = Color(0xFF1F2937)
             )
             Text(
                 "Doğru Oranı: %${(q.correctRate * 100).toInt()}",
-                color = Color(0xFF43A047)
+                color = Color(0xFF16A34A)
             )
             Row(
                 modifier = Modifier
@@ -187,7 +243,10 @@ fun QuestionCard(q: QuestionStat) {
                             softWrap = true,
                             overflow = TextOverflow.Visible
                         )
-                        Badge { Text("${opt.selectedCount}") }
+                        Badge(
+                            containerColor = primaryBlue,
+                            contentColor = Color.White
+                        ) { Text("${opt.selectedCount}") }
                     }
                 }
             }
@@ -198,13 +257,17 @@ fun QuestionCard(q: QuestionStat) {
 
 @Composable
 fun StudentCard(student: StudentDetail) {
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        elevation = CardDefaults.cardElevation(1.dp)
+            .padding(vertical = 8.dp),
+        color = Color(0xFFFFFFFF),
+        tonalElevation = 1.dp,
+        shadowElevation = 4.dp,
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, Color(0x332979FF))
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(student.name, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatBox("Puan", "${student.score}")
@@ -219,12 +282,12 @@ fun StudentCard(student: StudentDetail) {
                     Text("Seçilen: ${if (a.selectedOption.isNullOrEmpty() || a.selectedOption == "null") "-" else a.selectedOption}", modifier = Modifier.weight(1f))
                     Text("Doğru: ${if (a.correctOption.isNullOrEmpty() || a.correctOption == "null") "-" else a.correctOption}", modifier = Modifier.weight(1f))
                     if (a.isCorrect) {
-                        Icon(Icons.Default.Check, contentDescription = "Doğru", tint = Color(0xFF43A047))
+                        Icon(Icons.Default.Check, contentDescription = "Doğru", tint = Color(0xFF16A34A))
                     } else {
                         Icon(Icons.Default.Close, contentDescription = "Yanlış", tint = Color(0xFFE53935))
                     }
                 }
-                Divider()
+                Divider(color = Color(0x1A000000))
             }
         }
     }
