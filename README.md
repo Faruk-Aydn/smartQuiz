@@ -64,9 +64,9 @@ Bu akış, öğretmenin hazırlık süresini minimuma indirirken öğrencilerin 
 
 ```mermaid
 flowchart LR
-  A[Android App (Jetpack Compose)] -->|HTTPS| B[FastAPI Backend]
-  B --> C[(DB: SQLAlchemy)]
-  A <-.-> D[Local Storage (SharedPreferences)]
+  A[Android App - Jetpack Compose] -->|HTTPS| B[FastAPI Backend]
+  B --> C[Database]
+  A <--> D[Local Storage - SharedPreferences]
 ```
 
 ## 🛠️ Teknoloji Yığını
