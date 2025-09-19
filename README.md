@@ -164,44 +164,107 @@ Görseller `screens/` klasörü içinde tutulacaktır. Aşağıda README’de re
 
 > İpucu: Tutarlı cihaz çerçeveleri ve karanlık modu tercih ederek şık bir görünüm elde edin.
 
-- Giriş (Login)
-  - ![login](screens/login.png)
-- Kayıt (Register)
-  - ![register](screens/register.png)
-- Profil
-  - ![profile](screens/profile.png)
-- Öğretmen Ana Ekranı
-  - ![teacherHome](screens/teacherHome.png)
-- Quiz Oluştur (Menü)
-  - ![createQuiz](screens/createQuiz.png)
-- Yapay Zeka ile Quiz Oluşturma (Form)
-  - ![AICreateQuiz](screens/AICreateQuiz.png)
-- Manuel Quiz Oluşturma (Form)
-  - ![manuelCreateQuiz](screens/manuelCreateQuiz.png)
-- Quiz Listesi (Öğretmen)
-  - ![quizList](screens/quizList.png)
-- Quiz Detayı (Önizleme) 1
-  - ![quizDetail1](screens/quizDetail1.png)
-- Quiz Detayı (Önizleme) 2
-  - ![quizDetail2](screens/quizDetail2.png)
-- Öğretmen Quiz Sonuç Listesi
-  - ![teacherQuizResultList](screens/teacherQuizResultList.png)
-- Öğretmen Detaylı Sonuç 1
-  - ![teacherDetailResult1](screens/teacherDetailResult1.png)
-- Öğretmen Detaylı Sonuç 2
-  - ![teacherDetailResult2](screens/teacherDetailResult2.png)
-- Öğrenci Ana Ekranı
-  - ![studentHome](screens/studentHome.png)
-- Quiz'e Katıl (Kod/QR Giriş)
-  - ![joinQuiz](screens/joinQuiz.png)
-- Quiz Çöz / Zamanlayıcı
-  - ![solveQuiz](screens/solveQuiz.png)
-- Öğrenci Sonuç Özeti
-  - ![studentResult](screens/studentResult.png)
-- Öğrenci Çözüm Geçmişi
-  - ![studentSolvedQuizList](screens/studentSolvedQuizList.png)
-- Öğrenci Soru Bazlı Detay
-  - ![studentDetailResult](screens/studentDetailResult.png)
+<table>
+  <tr>
+    <td align="center">
+      <a href="screens/login.png" target="_blank"><img src="screens/login.png" alt="login" width="240" /></a>
+      <div><sub>Giriş (Login)</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/register.png" target="_blank"><img src="screens/register.png" alt="register" width="240" /></a>
+      <div><sub>Kayıt (Register)</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/profile.png" target="_blank"><img src="screens/profile.png" alt="profile" width="240" /></a>
+      <div><sub>Profil</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/teacherHome.png" target="_blank"><img src="screens/teacherHome.png" alt="teacherHome" width="240" /></a>
+      <div><sub>Öğretmen Ana Ekranı</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/createQuiz.png" target="_blank"><img src="screens/createQuiz.png" alt="createQuiz" width="240" /></a>
+      <div><sub>Quiz Oluştur (Menü)</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/AICreateQuiz.png" target="_blank"><img src="screens/AICreateQuiz.png" alt="AICreateQuiz" width="240" /></a>
+      <div><sub>Yapay Zeka ile Quiz Oluşturma</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/manuelCreateQuiz.png" target="_blank"><img src="screens/manuelCreateQuiz.png" alt="manuelCreateQuiz" width="240" /></a>
+      <div><sub>Manuel Quiz Oluşturma</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/quizList.png" target="_blank"><img src="screens/quizList.png" alt="quizList" width="240" /></a>
+      <div><sub>Quiz Listesi (Öğretmen)</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/quizDetail1.png" target="_blank"><img src="screens/quizDetail1.png" alt="quizDetail1" width="240" /></a>
+      <div><sub>Quiz Detayı 1</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/quizDetail2.png" target="_blank"><img src="screens/quizDetail2.png" alt="quizDetail2" width="240" /></a>
+      <div><sub>Quiz Detayı 2</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/teacherQuizResultList.png" target="_blank"><img src="screens/teacherQuizResultList.png" alt="teacherQuizResultList" width="240" /></a>
+      <div><sub>Öğretmen Quiz Sonuç Listesi</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/teacherDetailResult1.png" target="_blank"><img src="screens/teacherDetailResult1.png" alt="teacherDetailResult1" width="240" /></a>
+      <div><sub>Öğretmen Detaylı Sonuç 1</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/teacherDetailResult2.png" target="_blank"><img src="screens/teacherDetailResult2.png" alt="teacherDetailResult2" width="240" /></a>
+      <div><sub>Öğretmen Detaylı Sonuç 2</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/studentHome.png" target="_blank"><img src="screens/studentHome.png" alt="studentHome" width="240" /></a>
+      <div><sub>Öğrenci Ana Ekranı</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/joinQuiz.png" target="_blank"><img src="screens/joinQuiz.png" alt="joinQuiz" width="240" /></a>
+      <div><sub>Quiz'e Katıl</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/solveQuiz.png" target="_blank"><img src="screens/solveQuiz.png" alt="solveQuiz" width="240" /></a>
+      <div><sub>Quiz Çöz / Zamanlayıcı</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/studentResult.png" target="_blank"><img src="screens/studentResult.png" alt="studentResult" width="240" /></a>
+      <div><sub>Öğrenci Sonuç Özeti</sub></div>
+    </td>
+    <td align="center">
+      <a href="screens/studentSolvedQuizList.png" target="_blank"><img src="screens/studentSolvedQuizList.png" alt="studentSolvedQuizList" width="240" /></a>
+      <div><sub>Öğrenci Çözüm Geçmişi</sub></div>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screens/studentDetailResult.png" target="_blank"><img src="screens/studentDetailResult.png" alt="studentDetailResult" width="240" /></a>
+      <div><sub>Öğrenci Soru Bazlı Detay</sub></div>
+    </td>
+    <td align="center">
+      
+    </td>
+  </tr>
+</table>
 
   ## 🧠 Geliştirme Notları
   - Arayüz, modern görünüm için Compose Material 3 ve gradyan arkaplanlar kullanır.
