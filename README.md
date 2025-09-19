@@ -1,4 +1,4 @@
-  # QuizApp ✨📱🧠
+# QuizApp ✨📱🧠
 
   ![Android](https://img.shields.io/badge/Android-Jetpack%20Compose-3DDC84?logo=android&logoColor=white)
   ![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-7F52FF?logo=kotlin&logoColor=white)
@@ -11,31 +11,31 @@
 
   > Bu README'yi ekran görüntüleri ve GIF'lerle zenginleştirebilirsiniz. Ekran görüntülerini `docs/` klasörüne ekleyip buradan referanslayabilirsiniz.
 
-  ## 📚 İçindekiler
-  - [Genel Bakış](#genel-bakış)
-  - [Özellikler](#özellikler)
-  - [Mimari](#mimari)
-  - [Teknoloji Yığını](#teknoloji-yığını)
-  - [Proje Yapısı](#proje-yapısı)
-  - [Başlarken](#başlarken)
-    - [Önkoşullar](#önkoşullar)
-    - [Backend Kurulumu (FastAPI)](#backend-kurulumu-fastapi)
-    - [Android Uygulama Kurulumu](#android-uygulama-kurulumu)
-  - [Ortam Değişkenleri](#ortam-değişkenleri)
-  - [API Özeti](#api-özeti)
-  - [Ekran Görüntüleri](#ekran-görüntüleri)
-  - [Geliştirme Notları](#geliştirme-notları)
-  - [Sorun Giderme](#sorun-giderme)
-  - [Lisans](#lisans)
+## 📚 İçindekiler
+- [Genel Bakış](#genel-bakış)
+- [Özellikler](#özellikler)
+- [Mimari](#mimari)
+- [Teknoloji Yığını](#teknoloji-yığını)
+- [Proje Yapısı](#proje-yapısı)
+- [Başlarken](#başlarken)
+  - [Önkoşullar](#önkoşullar)
+  - [Backend Kurulumu (FastAPI)](#backend-kurulumu-fastapi)
+  - [Android Uygulama Kurulumu](#android-uygulama-kurulumu)
+- [Ortam Değişkenleri](#ortam-değişkenleri)
+- [API Özeti](#api-özeti)
+- [Ekran Görüntüleri](#ekran-görüntüleri)
+- [Geliştirme Notları](#geliştirme-notları)
+- [Sorun Giderme](#sorun-giderme)
+- [Lisans](#lisans)
 
   ---
 
-  ## 🧩 Genel Bakış
+## 🧩 Genel Bakış
   QuizApp, öğretmenlerin quiz oluşturup yönetmesini; öğrencilerin ise quize katılıp soruları çözmesini ve sonuçlarını incelemesini sağlar. Android uygulaması modern, akıcı ve kullanıcı dostu bir arayüz sunar. Backend tarafı, kimlik doğrulama ve quiz akışları için token tabanlı sağlam API'ler sağlar.
 
   Uygulamanın en önemli özelliği: Yapay zeka ile çok hızlı quiz oluşturma + QR kod ile kolay paylaşım + öğrenciler için detaylı yanlış analizleri.
 
-  ## 🔎 Ana Mantık: Yapay Zeka → QR Paylaşımı → Detaylı Analiz
+## 🔎 Ana Mantık: Yapay Zeka → QR Paylaşımı → Detaylı Analiz
   - **Yapay Zeka ile Quiz Oluşturma**: Öğretmen, konu/öğrenim hedeflerini girer; sistem yapay zeka ile saniyeler içinde kaliteli sorular ve seçenekler üretir.
   - **QR Kod ile Paylaşım**: Oluşturulan quiz otomatik olarak bir QR kodla temsil edilir. Öğretmen sınıfta QR'ı yansıtır veya paylaşır.
   - **Hızlı Katılım**: Öğrenciler Android uygulamasından QR'ı tarayıp quize anında katılır (alternatif: kodla katılım).
@@ -44,7 +44,7 @@
 
   Bu akış, öğretmenin hazırlık süresini minimuma indirirken öğrencilerin öğrenme verimini artırmayı hedefler.
 
-  ## ⭐ Özellikler
+## ⭐ Özellikler
   - ✅ Öğretmen ve Öğrenci rolleri
   - 🤖 Yapay zeka ile hızlı quiz oluşturma (saniyeler içinde)
   - 📱 QR kod ile quiz paylaşımı ve hızlı katılım
@@ -56,7 +56,7 @@
   - 🗂️ Öğrenci çözüm geçmişi (yeniden eskiye)
   - 🎨 Modern UI (gradyanlar, kartlar, ikonlar)
 
-  ## 🏗️ Mimari
+## 🏗️ Mimari
   - 🔹 İstemci ve sunucu ayrımı (temiz katmanlar)
   - 🔹 Android tarafında MVVM + Repository yapısı
   - 🔹 Backend: FastAPI + SQLAlchemy + Pydantic
@@ -69,12 +69,12 @@
     A <--> D[Local Storage - SharedPreferences]
   ```
 
-  ## 🛠️ Teknoloji Yığını
+## 🛠️ Teknoloji Yığını
   - Android: Kotlin, Jetpack Compose, Material 3, Navigation, ViewModel, Coroutines, Retrofit (veya benzeri), SharedPreferences
   - Backend: Python, FastAPI, SQLAlchemy, Pydantic, Uvicorn
   - Araçlar: Gradle, pip/venv, Git
 
-  ## 🗂️ Proje Yapısı
+## 🗂️ Proje Yapısı
   ```
   quizapp/
   ├─ android/          # Android application (Jetpack Compose)
@@ -91,15 +91,15 @@
   └─ README.md         # You are here
   ```
 
-  ## 🚀 Başlarken
+## 🚀 Başlarken
 
-  ### ✅ Önkoşullar
+### ✅ Önkoşullar
   - Android Studio (Giraffe/Flamingo veya üzeri)
   - JDK 17 (güncel Android Gradle Plugin için önerilir)
   - Python 3.10+
   - Git
 
-  ### 🧪 Backend Kurulumu (FastAPI)
+### 🧪 Backend Kurulumu (FastAPI)
   1. Python sanal ortam oluşturun ve etkinleştirin:
     ```bash
     cd backend
@@ -122,14 +122,14 @@
     - Swagger UI: http://localhost:8000/docs
     - ReDoc: http://localhost:8000/redoc
 
-  ### 📱 Android Uygulama Kurulumu
+### 📱 Android Uygulama Kurulumu
   1. `android/` klasörünü Android Studio ile açın.
   2. Gradle senkronize edin ve projeyi derleyin.
   3. Backend için `BASE_URL` değerini ayarlayın (ör. sabitler dosyası veya build config). Emulator kullanıyorsanız:
     - Android Emulator'dan host makineye: `http://10.0.2.2:8000`
   4. Uygulamayı cihazda veya emulatörde çalıştırın.
 
-  ## 🔐 Ortam Değişkenleri
+## 🔐 Ortam Değişkenleri
   Backend (örnekler; ihtiyacınıza göre güncelleyin):
   - `DATABASE_URL`: SQLAlchemy bağlantı dizesi (ör. `sqlite:///./quiz.db` veya PostgreSQL URL)
   - `SECRET_KEY`: JWT gizli anahtarı
@@ -140,7 +140,7 @@
   - `BASE_URL`: Backend ana URL. Emulator için örnek: `http://10.0.2.2:8000`
   - Tokenlar `SharedPreferences` içinde saklanır (`quiz_app_prefs` altında `access_token`).
 
-  ## 🔗 API Özeti
+## 🔗 API Özeti
   Önemli uç noktalar (temsili; tam liste için Swagger'a bakın):
   - Auth
     - `POST /auth/login`
@@ -159,7 +159,7 @@
 
   Tüm korumalı uç noktalar `Authorization: Bearer <token>` başlığı gerektirir.
 
-  ## 🖼️ Ekran Görüntüleri
+## 🖼️ Ekran Görüntüleri
 Görseller `screens/` klasörü içinde tutulacaktır. Aşağıda README’de referanslanan başlıklar ve dosyalar yer almaktadır.
 
 > İpucu: Tutarlı cihaz çerçeveleri ve karanlık modu tercih ederek şık bir görünüm elde edin.
@@ -266,14 +266,14 @@ Görseller `screens/` klasörü içinde tutulacaktır. Aşağıda README’de re
   </tr>
 </table>
 
-  ## 🧠 Geliştirme Notları
+## 🧠 Geliştirme Notları
   - Arayüz, modern görünüm için Compose Material 3 ve gradyan arkaplanlar kullanır.
   - Gezinti `NavController` ile yönetilir; ekranlar sistem geri tuşunu doğal olarak destekler.
   - Token, `SharedPreferences` içinde `quiz_app_prefs` altında `access_token` olarak saklanır.
   - Bazı Compose API'leri deneyseldir; gerektiğinde opt‑in edilir.
   - Min SDK 24+; daha geniş uyumluluk için tarih ayrıştırmada dikkatli desenler kullanılır.
 
-  ## 🧯 Sorun Giderme
+## 🧯 Sorun Giderme
   - **Bağlantı (Android → Backend)**
     - Emulator'dan host makineye `10.0.2.2` kullanın.
     - CORS ve sunucu bind adresini kontrol edin.
@@ -284,5 +284,5 @@ Görseller `screens/` klasörü içinde tutulacaktır. Aşağıda README’de re
   - **Tarih Ayrıştırma**
     - ISO (zaman dilimli/dilimsiz) ve epoch sn/ms desteklenir. Backend farklıysa `StudentSolvedQuizListScreen.kt` içindeki desenleri güncelleyin.
 
-  ## 📄 Lisans
+## 📄 Lisans
   Bu proje MIT Lisansı ile lisanslanmıştır. Ayrıntılar için `LICENSE` dosyasına bakın.
