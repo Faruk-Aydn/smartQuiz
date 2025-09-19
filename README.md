@@ -1,71 +1,76 @@
 # QuizApp ✨📱🧠
 
-![Android](https://img.shields.io/badge/Android-Jetpack%20Compose-3DDC84?logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-7F52FF?logo=kotlin&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
+Modern bir full-stack quiz uygulaması: yerel Android istemcisi ve FastAPI backend’i.  
+Öğretmen ve öğrenci rolleri, güvenli kimlik doğrulama, profil yönetimi ve Jetpack Compose ile tasarlanmış şık bir arayüz sunar.  
 
-A modern, full‑stack quiz app with a native Android client and a FastAPI backend. It supports teacher and student roles, secure authentication, profile management, and a polished UI built with Jetpack Compose.
-
-> You can enhance this README with screenshots and GIFs. Add them to a `docs/` folder and link them under the Screenshots section.
-
-## 📚 Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Backend Setup (FastAPI)](#backend-setup-fastapi)
-  - [Android App Setup](#android-app-setup)
-- [Environment Variables](#environment-variables)
-- [API Overview](#api-overview)
-- [Screenshots](#screenshots)
-- [Development Notes](#development-notes)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
+> Bu README’yi ekran görüntüleri ve GIF’lerle geliştirebilirsiniz. Bunları `docs/` klasörüne ekleyip **Ekran Görüntüleri** bölümünde gösterebilirsiniz.
 
 ---
 
-## 🧩 Overview
-QuizApp enables teachers to create and manage quizzes while students can join, solve, and review results. The Android app offers a polished UI/UX with animated, modern components, offline‑friendly behavior, and safe navigation patterns. The backend provides robust, token‑based APIs for authentication and quiz workflows.
+## 📚 İçindekiler
+- [Genel Bakış](#-genel-bakış)
+- [Özellikler](#-özellikler)
+- [Mimari](#-mimari)
+- [Teknoloji Yığını](#️-teknoloji-yığını)
+- [Proje Yapısı](#-proje-yapısı)
+- [Başlarken](#-başlarken)
+  - [Ön Gereksinimler](#-ön-gereksinimler)
+  - [Backend Kurulumu (FastAPI)](#-backend-kurulumu-fastapi)
+  - [Android Uygulaması Kurulumu](#-android-uygulaması-kurulumu)
+- [Ortam Değişkenleri](#-ortam-değişkenleri)
+- [API Genel Bakış](#-api-genel-bakış)
+- [Ekran Görüntüleri](#-ekran-görüntüleri)
+- [Geliştirme Notları](#-geliştirme-notları)
+- [Sorun Giderme](#-sorun-giderme)
+- [Lisans](#-lisans)
 
-## ⭐ Features
-- ✅ Teacher & Student roles
-- 🔐 Secure auth (Bearer token)
-- 👤 Profile view/edit (both roles)
-- 📝 Create, list, join quizzes
-- ⏱️ Countdown timer + auto‑submit on timeout
-- 📊 Result summary + per‑question review
-- 🗂️ Student solved history (newest‑first)
-- 🎨 Modern UI (gradients, cards, icons)
+---
 
-## 🏗️ Architecture
-- 🔹 Clean separation between client and server
-- 🔹 Android app uses MVVM with repositories
-- 🔹 Backend uses FastAPI + SQLAlchemy + Pydantic
-- 🔹 Stateless APIs secured with Bearer tokens
+## 🧩 Genel Bakış
+QuizApp, öğretmenlerin quiz oluşturup yönetmesini; öğrencilerin ise quizlere katılıp çözmesini ve sonuçlarını incelemesini sağlar.  
+Android uygulaması modern ve animasyonlu bir UI/UX sunar, offline dostu çalışır ve güvenli navigasyon desenleri kullanır.  
+Backend tarafında güvenilir, token tabanlı API’ler bulunur.
+
+---
+
+## ⭐ Özellikler
+- ✅ Öğretmen & Öğrenci rolleri  
+- 🔐 Güvenli kimlik doğrulama (Bearer token)  
+- 👤 Profil görüntüleme/düzenleme (her iki rol için)  
+- 📝 Quiz oluşturma, listeleme, katılma  
+- ⏱️ Geri sayım sayacı + süre dolunca otomatik gönderim  
+- 📊 Sonuç özeti + soru bazlı inceleme  
+- 🗂️ Öğrencinin çözdüğü quiz geçmişi (yeniden eskiye)  
+- 🎨 Modern arayüz (gradientler, kartlar, ikonlar)  
+
+---
+
+## 🏗️ Mimari
+- 🔹 İstemci ve sunucu arasında net ayrım  
+- 🔹 Android uygulaması: MVVM + Repository  
+- 🔹 Backend: FastAPI + SQLAlchemy + Pydantic  
+- 🔹 Bearer token ile güvence altına alınmış stateless API’ler  
 
 ```mermaid
 flowchart LR
-  A[Android App (Jetpack Compose)] -->|HTTPS| B[FastAPI Backend]
+  A[Android Uygulaması (Jetpack Compose)] -->|HTTPS| B[FastAPI Backend]
   B --> C[(DB: SQLAlchemy)]
-  A <-.-> D[Local Storage (SharedPreferences)]
-```
+  A <-.-> D[Yerel Depolama (SharedPreferences)]
+🛠️ Teknoloji Yığını
+Android: Kotlin, Jetpack Compose, Material 3, Navigation, ViewModel, Coroutines, Retrofit, SharedPreferences
 
-## 🛠️ Tech Stack
-- Android: Kotlin, Jetpack Compose, Material 3, Navigation, ViewModel, Coroutines, Retrofit (or similar), SharedPreferences
-- Backend: Python, FastAPI, SQLAlchemy, Pydantic, Uvicorn
-- Build/Tools: Gradle, pip/venv, Git
+Backend: Python, FastAPI, SQLAlchemy, Pydantic, Uvicorn
 
-## 🗂️ Project Structure
-```
+Araçlar: Gradle, pip/venv, Git
+
+🗂️ Proje Yapısı
+bash
+Kodu kopyala
 quizapp/
-├─ android/          # Android application (Jetpack Compose)
+├─ android/          # Android uygulaması (Jetpack Compose)
 │  ├─ app/
 │  └─ ...
-├─ backend/          # FastAPI application
+├─ backend/          # FastAPI uygulaması
 │  ├─ app/
 │  │  ├─ main.py
 │  │  ├─ api/
@@ -73,108 +78,152 @@ quizapp/
 │  │  ├─ schemas/
 │  │  └─ services/
 │  └─ requirements.txt
-└─ README.md         # You are here
-```
+└─ README.md         # Buradasınız
+🚀 Başlarken
+✅ Ön Gereksinimler
+Android Studio (Giraffe/Flamingo veya üstü)
 
-## 🚀 Getting Started
+JDK 17 (Android Gradle Plugin için önerilen)
 
-### ✅ Prerequisites
-- Android Studio (Giraffe/Flamingo or newer)
-- JDK 17 (recommended for latest Android Gradle Plugin)
-- Python 3.10+
-- Git
+Python 3.10+
 
-### 🧪 Backend Setup (FastAPI)
-1. Create and activate a Python virtual environment:
-   ```bash
-   cd backend
-   python -m venv .venv
-   # Windows
-   .venv\Scripts\activate
-   # macOS/Linux
-   source .venv/bin/activate
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Configure environment variables (see [Environment Variables](#environment-variables)).
-4. Run the server (auto-reload):
-   ```bash
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-5. Open API docs:
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
+Git
 
-### 📱 Android App Setup
-1. Open `android/` in Android Studio.
-2. Sync Gradle and build the project.
-3. Configure `BASE_URL` for your backend (e.g., in a constants file or build config). If using emulator:
-   - Android Emulator to host machine: `http://10.0.2.2:8000`
-4. Run the app on a device or emulator.
+🧪 Backend Kurulumu (FastAPI)
+Sanal ortam oluştur ve etkinleştir:
 
-## 🔐 Environment Variables
-Backend (examples; adapt as needed):
-- `DATABASE_URL`: SQLAlchemy connection string (e.g., `sqlite:///./quiz.db` or PostgreSQL URL)
-- `SECRET_KEY`: JWT secret key
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token TTL (e.g., `60`)
-- `CORS_ORIGINS`: Allowed origins (e.g., `http://localhost:3000,http://10.0.2.2:8000`)
+bash
+Kodu kopyala
+cd backend
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+Bağımlılıkları yükle:
+
+bash
+Kodu kopyala
+pip install -r requirements.txt
+Ortam değişkenlerini ayarla (bkz. Ortam Değişkenleri).
+
+Sunucuyu çalıştır:
+
+bash
+Kodu kopyala
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+API dokümanları:
+
+Swagger UI: http://localhost:8000/docs
+
+ReDoc: http://localhost:8000/redoc
+
+📱 Android Uygulaması Kurulumu
+android/ klasörünü Android Studio ile aç.
+
+Gradle senkronize et ve projeyi derle.
+
+Backend BASE_URL’ini ayarla (constants veya build config). Emulator için:
+
+http://10.0.2.2:8000
+
+Uygulamayı cihazda veya emulator’da çalıştır.
+
+🔐 Ortam Değişkenleri
+Backend (örnekler):
+
+DATABASE_URL: SQLAlchemy bağlantı adresi (örn. sqlite:///./quiz.db)
+
+SECRET_KEY: JWT gizli anahtarı
+
+ACCESS_TOKEN_EXPIRE_MINUTES: Token geçerlilik süresi (örn. 60)
+
+CORS_ORIGINS: İzin verilen origin’ler
 
 Android:
-- `BASE_URL`: Backend base URL. Example for emulator: `http://10.0.2.2:8000`
-- Store tokens in `SharedPreferences` (already used as `quiz_app_prefs` with `access_token`).
 
-## 🔗 API Overview
-Key endpoints (representative; see Swagger for full list):
-- Auth
-  - `POST /auth/login`
-  - `POST /auth/register`
-- Profile
-  - `GET /users/me`
-  - `PUT /users/me`
-- Quizzes
-  - `GET /quizzes` (list)
-  - `POST /quizzes` (teacher)
-  - `GET /quizzes/{id}` (details with questions)
-  - `POST /quizzes/{id}/submit` (submit answers)
-- Student
-  - `GET /students/me/solved-quizzes` (history)
-  - `GET /students/me/results/{quiz_id}` (detailed result)
+BASE_URL: Backend temel URL’i (örn. http://10.0.2.2:8000)
 
-All protected endpoints require `Authorization: Bearer <token>` header.
+Token’lar SharedPreferences içinde quiz_app_prefs → access_token olarak saklanır.
 
-## 🖼️ Screenshots
-Add your images to `docs/` and reference them here. Suggested layout:
+🔗 API Genel Bakış
+Önemli uç noktalar (tam liste için Swagger’a bakın):
 
-> Tip: Use consistent device frames/dark mode for a sleek look.
+Auth
 
-- Student Home
-  - ![Student Home](docs/student_home.png)
-- Join Quiz
-  - ![Join Quiz](docs/join_quiz.png)
-- Solve Quiz / Timer
-  - ![Solve Quiz](docs/solve_quiz.png)
-- Results
-  - ![Results](docs/results.png)
+POST /auth/login
 
-## 🧠 Development Notes
-- UI uses Compose Material 3 and gradient backgrounds for modern look.
-- Navigation via `NavController`; screens also support system back by default.
-- Token stored in `SharedPreferences` under `quiz_app_prefs` as `access_token`.
-- Some Compose APIs are experimental; we opt‑in where needed.
-- Min SDK 24+; date parsing avoids `java.time` for broader compatibility.
+POST /auth/register
 
-## 🧯 Troubleshooting
-- **Connectivity (Android → Backend)**
-  - Use `10.0.2.2` from emulator to host machine.
-  - Check CORS and server bind address.
-- **Auth**
-  - Token missing/expired → Re‑login; verify token stored in `SharedPreferences`.
-- **Compose Experimental APIs**
-  - Ensure `@OptIn(ExperimentalMaterial3Api::class)` where needed.
-- **Date Parsing**
-  - ISO (with/without timezone) and epoch sec/ms supported. If your backend differs, update patterns in `StudentSolvedQuizListScreen.kt`.
+Profil
 
-## 📄 License
-This project is licensed under the MIT License. See `LICENSE` for details.
+GET /users/me
+
+PUT /users/me
+
+Quizler
+
+GET /quizzes (liste)
+
+POST /quizzes (öğretmen)
+
+GET /quizzes/{id} (detay + sorular)
+
+POST /quizzes/{id}/submit (cevap gönder)
+
+Öğrenci
+
+GET /students/me/solved-quizzes (geçmiş)
+
+GET /students/me/results/{quiz_id} (detaylı sonuç)
+
+Tüm korumalı uç noktalar Authorization: Bearer <token> başlığı gerektirir.
+
+🖼️ Ekran Görüntüleri
+docs/ klasörüne ekleyip buraya referans verebilirsiniz.
+
+Öğrenci Ana Sayfa
+
+Quiz Katılma
+
+Quiz Çözme / Sayaç
+
+Sonuçlar
+
+🧠 Geliştirme Notları
+UI: Compose Material 3 + gradient arka planlar
+
+Navigasyon: NavController + sistem geri desteği
+
+Token: SharedPreferences → quiz_app_prefs içinde access_token
+
+Bazı Compose API’leri deneysel, @OptIn ile kullanıldı
+
+Min SDK: 24+
+
+Tarih parse işlemleri ISO + epoch desteği ile yapıldı
+
+🧯 Sorun Giderme
+Bağlantı (Android → Backend):
+
+Emulator için 10.0.2.2 kullan
+
+Sunucunun bind adresini ve CORS ayarlarını kontrol et
+
+Kimlik Doğrulama:
+
+Token eksik/expired → tekrar giriş yap
+
+SharedPreferences içinde token kontrol et
+
+Compose Deneysel API’ler:
+
+@OptIn(ExperimentalMaterial3Api::class) ekle
+
+Tarih Parse:
+
+ISO ve epoch destekli. Backend farklı format kullanıyorsa StudentSolvedQuizListScreen.kt’i güncelle.
+
+📄 Lisans
+Bu proje MIT Lisansı ile lisanslanmıştır.
+Detaylar için LICENSE dosyasına bakın.
