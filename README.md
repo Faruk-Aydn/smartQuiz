@@ -9,7 +9,7 @@
 
   Öne çıkan özellik: Öğretmenler yapay zeka ile saniyeler içinde quiz oluşturur, QR kod ile öğrencilerle anında paylaşır; öğrenciler soruları çözer ve hatalarını ayrıntılı analiz ekranında net biçimde görür.
 
-  > Bu README'yi ekran görüntüleri ve GIF'lerle zenginleştirebilirsiniz. Ekran görüntülerini `docs/` klasörüne ekleyip buradan referanslayabilirsiniz.
+> Bu README'yi ekran görüntüleri ve GIF'lerle zenginleştirebilirsiniz. Görselleri `screens/` klasörüne ekleyin; aşağıdaki tablo küçük önizlemeler içerir ve tıklayınca büyük görseller açılır.
 
 ## 📚 İçindekiler
 - [Genel Bakış](#genel-bakış)
