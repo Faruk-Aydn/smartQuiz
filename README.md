@@ -12,7 +12,7 @@ Modern, uçtan uca bir quiz uygulaması: yerel Android istemci ve FastAPI tabanl
 > Bu README'yi ekran görüntüleri ve GIF'lerle zenginleştirebilirsiniz. Görselleri `screens/` klasörüne ekleyin; aşağıdaki tablo küçük önizlemeler içerir ve tıklayınca büyük görseller açılır.
 
 ## 📚 İçindekiler
-- [Genel Bakış](#genel-bakis)
+- [Genel Bakış](#-genel-bakis)
 - [Özellikler](#-ozellikler)
 - [Mimari](#-mimari)
 - [Teknoloji Yığını](#-teknoloji-yigini)
