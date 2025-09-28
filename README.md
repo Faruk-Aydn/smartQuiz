@@ -11,22 +11,23 @@ Modern, uçtan uca bir quiz uygulaması: yerel Android istemci ve FastAPI tabanl
 
 > Bu README'yi ekran görüntüleri ve GIF'lerle zenginleştirebilirsiniz. Görselleri `screens/` klasörüne ekleyin; aşağıdaki tablo küçük önizlemeler içerir ve tıklayınca büyük görseller açılır.
 
-  ## 📚 İçindekiler
-  - [Genel Bakış](#genel-bakış)
-  - [Özellikler](#özellikler)
-  - [Mimari](#mimari)
-  - [Teknoloji Yığını](#teknoloji-yığını)
-  - [Proje Yapısı](#proje-yapısı)
-  - [Başlarken](#başlarken)
-    - [Önkoşullar](#önkoşullar)
-    - [Backend Kurulumu (FastAPI)](#backend-kurulumu-fastapi)
-    - [Android Uygulama Kurulumu](#android-uygulama-kurulumu)
-  - [Ortam Değişkenleri](#ortam-değişkenleri)
-  - [API Özeti](#api-özeti)
-  - [Ekran Görüntüleri](#ekran-görüntüleri)
-  - [Geliştirme Notları](#geliştirme-notları)
-  - [Sorun Giderme](#sorun-giderme)
-  - [Lisans](#lisans)
+## 📚 İçindekiler
+- [Genel Bakış](#genel-bakis)
+- [Özellikler](#-ozellikler)
+- [Mimari](#-mimari)
+- [Teknoloji Yığını](#-teknoloji-yigini)
+- [Proje Yapısı](#-proje-yapisi)
+- [Başlarken](#-baslarken)
+  - [Önkoşullar](#-on-kosullar)
+  - [Backend Kurulumu (FastAPI)](#-backend-kurulumu-fastapi)
+  - [Android Uygulama Kurulumu](#-android-uygulama-kurulumu)
+- [Ortam Değişkenleri](#-ortam-degiskenleri)
+- [API Özeti](#-api-ozeti)
+- [Ekran Görüntüleri](#-ekran-goruntuleri)
+- [Geliştirme Notları](#-gelistirme-notlari)
+- [Sorun Giderme](#-sorun-giderme)
+- [Lisans](#-lisans)
+
 
 ## 🧩 Genel Bakış
 QuizApp, öğretmenlerin quiz oluşturup yönetmesini; öğrencilerin ise quize katılıp soruları çözmesini ve sonuçlarını incelemesini sağlar. Android uygulaması modern, akıcı ve kullanıcı dostu bir arayüz sunar. Backend tarafı, kimlik doğrulama ve quiz akışları için token tabanlı sağlam API'ler sağlar.
